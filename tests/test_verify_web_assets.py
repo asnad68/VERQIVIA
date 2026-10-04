@@ -126,6 +126,17 @@ class VerifyWebAssetTests(unittest.TestCase):
         self.assertTrue((ROOT / "site/commercial.html").is_file())
         self.assertTrue((ROOT / "site/terms.html").is_file())
 
+    def test_public_profile_points_to_a_published_proof_resource(self):
+        profile = read_json(ROOT / "site/data/portable-profile-demo.json")
+        self.assertEqual(
+            profile["proofs"][0]["url"],
+            "https://asnad68.github.io/VERQIVIA/data/demo-proof.json",
+        )
+        self.assertEqual(
+            profile["proofs"][0]["envelope_id"],
+            self.proof["envelope_id"],
+        )
+
     def test_discovery_pointer_is_explicitly_synthetic(self):
         discovery = read_json(ROOT / "site/.well-known/verqivia.json")
         self.assertTrue(discovery["synthetic"])
