@@ -47,16 +47,6 @@ services:
       - key: NOTHING_TRUST_PROXY_HEADERS
         value: false
 
-  - type: web
-    name: verqivia-site
-    runtime: static
-    buildCommand: echo "VERQIVIA static site — no build step required"
-    staticPublishPath: ./site
-    plan: free
-    region: frankfurt
-    branch: main
-    autoDeploy: true
-
 databases:
   - name: verqivia-postgres
     databaseName: verqivia_prod
