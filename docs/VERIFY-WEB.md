@@ -1,12 +1,12 @@
-# NOTHING Verify Web — Prototype
+# VERQIVIA Verify Web — Prototype
 
 ## Purpose
 
-Verify Web is the human-facing read view of the NOTHING protocol graph.
+Verify Web is the human-facing read view of the VERQIVIA protocol graph.
 
 It shows:
 
-- Nothing ID
+- VERQIVIA ID
 - subject
 - recorded claim status
 - current verification result
@@ -55,7 +55,7 @@ The repository includes a custom GitHub Actions deployment workflow using the st
 
 For a project repository, the expected default Pages URL is:
 
-`https://asnad68.github.io/NOTHING/`
+`https://asnad68.github.io/VERQIVIA/`
 
 The repository owner must ensure the Pages source is configured to use **GitHub Actions** in repository Settings → Pages. GitHub Pages supports static files and custom domains; server-side Python or PHP is not required for this prototype.
 
