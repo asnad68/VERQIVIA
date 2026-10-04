@@ -103,6 +103,8 @@ TRUST_PROXY_HEADERS = os.getenv(
     "false",
 ).lower() in {"1", "true", "yes"}
 TENANCY_MODE = os.getenv("NOTHING_TENANCY_MODE", "single-tenant").strip().lower()
+PUBLIC_SITE_ORIGIN = os.getenv("NOTHING_PUBLIC_SITE_ORIGIN", "").strip().rstrip("/")
+PUBLIC_API_ORIGIN = os.getenv("NOTHING_PUBLIC_API_ORIGIN", "").strip().rstrip("/")
 
 
 def _repo_root() -> Path:
@@ -1301,10 +1303,32 @@ class NothingApiHandler(BaseHTTPRequestHandler):
                 verification_events=events,
                 evidence_records=evidence,
                 procedure_registry=bundle.registry,
-                public_verify_url=f"/verify.html?id={nothing_id}",
-                api_url=f"/v1/identity/{nothing_id}",
-                discovery_url="/.well-known/verqivia.json",
-                cryptographic_proofs=proof_refs,
+                public_verify_url=(
+                    f"{PUBLIC_SITE_ORIGIN}/verify.html?id={nothing_id}"
+                    if PUBLIC_SITE_ORIGIN
+                    else f"/verify.html?id={nothing_id}"
+                ),
+                api_url=(
+                    f"{PUBLIC_API_ORIGIN}/v1/identity/{nothing_id}"
+                    if PUBLIC_API_ORIGIN
+                    else f"/v1/identity/{nothing_id}"
+                ),
+                discovery_url=(
+                    f"{PUBLIC_SITE_ORIGIN}/.well-known/verqivia.json"
+                    if PUBLIC_SITE_ORIGIN
+                    else "/.well-known/verqivia.json"
+                ),
+                cryptographic_proofs=[
+                    {
+                        **proof,
+                        "url": (
+                            f"{PUBLIC_API_ORIGIN}/v1/proofs/{proof['envelope_id']}"
+                            if PUBLIC_API_ORIGIN
+                            else proof["url"]
+                        ),
+                    }
+                    for proof in proof_refs
+                ],
             )
         except NotFoundError:
             self._send_problem(
