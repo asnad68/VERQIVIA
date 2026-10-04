@@ -1046,6 +1046,80 @@
           }
         }
       }
+    },
+    "/v1/identity/{nothing_id}/profile": {
+      "get": {
+        "tags": [
+          "Identity"
+        ],
+        "summary": "Resolve the portable VERQIVIA verification profile",
+        "description": "Returns an additive machine-readable profile for one identity. It is intended for software, procurement systems, marketplaces and AI agents. The profile does not grant trademark rights or create a universal trust score.",
+        "operationId": "getPortableVerificationProfile",
+        "security": [],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/NothingId"
+          },
+          {
+            "$ref": "#/components/parameters/IfNoneMatch"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Portable verification profile for the requested identity.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortableVerificationProfileResponse"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "The representation has not changed."
+          },
+          "400": {
+            "description": "Invalid VERQIVIA identifier.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested identity does not exist.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The profile could not be built from the current verification graph.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2524,6 +2598,368 @@
           },
           "meta": {
             "$ref": "#/components/schemas/ApiMeta"
+          }
+        }
+      },
+      "PortableVerificationProfileResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PortableVerificationProfile"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ApiMeta"
+          }
+        }
+      },
+      "PortableVerificationProfile": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "profile_type",
+          "profile_version",
+          "verqivia_id",
+          "subject",
+          "status",
+          "identifiers",
+          "domains",
+          "claims",
+          "relationships",
+          "verification",
+          "links",
+          "interop",
+          "disclaimer"
+        ],
+        "properties": {
+          "profile_type": {
+            "type": "string",
+            "const": "VERQIVIA-PORTABLE-VERIFICATION-PROFILE"
+          },
+          "profile_version": {
+            "type": "string",
+            "const": "0.2-draft"
+          },
+          "verqivia_id": {
+            "type": "string",
+            "pattern": "^NTH-[0-9]{6}$"
+          },
+          "subject": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "type"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "business",
+                  "brand",
+                  "digital_channel",
+                  "authorized_agent",
+                  "other"
+                ]
+              },
+              "website": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "REVOKED"
+            ]
+          },
+          "identifiers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "system",
+                "value"
+              ],
+              "properties": {
+                "system": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "uri": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "role": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          "domains": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "domain",
+                "status"
+              ],
+              "properties": {
+                "domain": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "VERIFIED",
+                    "SOURCE-VERIFIED",
+                    "SELF-CLAIMED",
+                    "NOT-VERIFIED",
+                    "REVOKED"
+                  ]
+                },
+                "verification_event_id": {
+                  "type": "string",
+                  "pattern": "^VER-[0-9]{6}$"
+                }
+              }
+            }
+          },
+          "claims": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "claim_id",
+                "statement",
+                "status"
+              ],
+              "properties": {
+                "claim_id": {
+                  "type": "string",
+                  "pattern": "^CLM-[0-9]{6}$"
+                },
+                "statement": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "VERIFIED",
+                    "SOURCE-VERIFIED",
+                    "SELF-CLAIMED",
+                    "NOT-VERIFIED",
+                    "INCONCLUSIVE",
+                    "REVOKED"
+                  ]
+                },
+                "current_event_id": {
+                  "type": "string",
+                  "pattern": "^VER-[0-9]{6}$"
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "evidence_ids": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^EVD-[0-9]{6}$"
+                  }
+                },
+                "valid_from": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "valid_until": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "relationships": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "relationship_id",
+                "relationship_type",
+                "target",
+                "status"
+              ],
+              "properties": {
+                "relationship_id": {
+                  "type": "string",
+                  "pattern": "^REL-[0-9]{6}$"
+                },
+                "relationship_type": {
+                  "type": "string",
+                  "enum": [
+                    "official_domain",
+                    "brand_association",
+                    "authorized_agent",
+                    "authorized_partner",
+                    "merchant_account",
+                    "digital_channel"
+                  ]
+                },
+                "target": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "target_verqivia_id": {
+                  "type": "string",
+                  "pattern": "^NTH-[0-9]{6}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "VERIFIED",
+                    "SOURCE-VERIFIED",
+                    "SELF-CLAIMED",
+                    "NOT-VERIFIED",
+                    "REVOKED"
+                  ]
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "evidence_ids": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^EVD-[0-9]{6}$"
+                  }
+                },
+                "valid_from": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "valid_until": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "verification": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "resolution_version",
+              "verification_event_count",
+              "evidence_count"
+            ],
+            "properties": {
+              "resolution_version": {
+                "type": "string",
+                "minLength": 1
+              },
+              "verification_event_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "evidence_count": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "links": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "verify"
+            ],
+            "properties": {
+              "verify": {
+                "type": "string",
+                "format": "uri-reference"
+              },
+              "api": {
+                "type": "string",
+                "format": "uri-reference"
+              },
+              "discovery": {
+                "type": "string",
+                "format": "uri-reference"
+              }
+            }
+          },
+          "interop": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "w3c_vc": {
+                "type": "string",
+                "enum": [
+                  "not_applied",
+                  "adapter_available",
+                  "adapter_planned"
+                ]
+              },
+              "openid4vci": {
+                "type": "string",
+                "enum": [
+                  "not_applied",
+                  "adapter_planned"
+                ]
+              },
+              "gleif_lei": {
+                "type": "string",
+                "enum": [
+                  "not_present",
+                  "present",
+                  "external_resolution_planned"
+                ]
+              },
+              "bimi": {
+                "type": "string",
+                "enum": [
+                  "not_present",
+                  "referenced",
+                  "external_resolution_planned"
+                ]
+              },
+              "gs1_digital_link": {
+                "type": "string",
+                "enum": [
+                  "not_present",
+                  "referenced",
+                  "adapter_planned"
+                ]
+              }
+            }
+          },
+          "disclaimer": {
+            "type": "string",
+            "minLength": 1
           }
         }
       }
