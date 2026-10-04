@@ -100,11 +100,24 @@ def main() -> int:
     if not proof_result["valid"]:
         raise AssertionError(f"cryptographic proof verification failed: {proof_result['reason']}")
 
+    public_bundle = read_json(ROOT / "site/data/demo-bundle.json")
+    public_identity = public_bundle["identities"][0]
     public_proof = read_json(ROOT / "site/data/demo-proof.json")
-    public_registry = read_json(ROOT / "site/.well-known/nothing-keys.json")
-    if public_proof != proof:
-        raise AssertionError("site/data/demo-proof.json diverges from examples/CRD-000001.json")
-    if public_registry != issuer_registry:
+    public_registry = read_json(ROOT / "site/data/demo-issuer-registry.json")
+    public_legacy_registry = read_json(ROOT / "site/.well-known/nothing-keys.json")
+    if public_proof["resource_id"] != public_identity["nothing_id"]:
+        raise AssertionError("public demo proof points to a different identity")
+    public_proof_result = verify_envelope(
+        public_proof,
+        public_identity,
+        public_registry,
+        at_time=public_proof["proof"]["created"],
+    )
+    if not public_proof_result["valid"]:
+        raise AssertionError(
+            f"public demo cryptographic proof verification failed: {public_proof_result['reason']}"
+        )
+    if public_legacy_registry != issuer_registry:
         raise AssertionError(
             "site/.well-known/nothing-keys.json diverges from trust/issuer-registry.json"
         )
@@ -114,8 +127,16 @@ def main() -> int:
         ROOT / "examples/CRD-000001.json",
     )
     assert_schema_valid(
+        ROOT / "schema/proof.schema.json",
+        ROOT / "site/data/demo-proof.json",
+    )
+    assert_schema_valid(
         ROOT / "schema/issuer-registry.schema.json",
         ROOT / "trust/issuer-registry.json",
+    )
+    assert_schema_valid(
+        ROOT / "schema/issuer-registry.schema.json",
+        ROOT / "site/data/demo-issuer-registry.json",
     )
 
     print("VERQIVIA PREFLIGHT: OK")
