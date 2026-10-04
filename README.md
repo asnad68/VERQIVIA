@@ -436,6 +436,12 @@ VERQIVIA follows:
 
 The project should earn trust through transparent verification rather than through slogans.
 
+## Commercial Access
+
+The current public release supports controlled pilots and early commercial engagements. See `docs/SALES-AND-PRICING.md` and the public [Commercial](site/commercial.html) and [Terms](site/terms.html) pages.
+
+Production SaaS remains gated by deployment, authentication, persistent infrastructure, security, key-governance and jurisdiction-specific legal/privacy requirements.
+
 
 ---
 
@@ -564,7 +570,7 @@ See `docs/COMMERCIAL-PILOT.md` and `docs/PILOT-AGREEMENT-TEMPLATE.md`.
 **Stage:** Prototype / Research  
 **Cost Target:** $0 for initial proof-of-concept  
 **Primary Concept:** Business Identity Verification  
-**Working Product Name:** VERQIVIA Passport™  
+**Commercial Product:** VERQIVIA Verification Infrastructure  
 **Human-facing Marker:** ◇
 
 ---
