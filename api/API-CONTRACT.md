@@ -1,8 +1,8 @@
-# NOTHING API Contract — v1
+# VERQIVIA API Contract — v1
 
 ## Scope
 
-The public resource surface is read-oriented, while writes use one explicitly separated authenticated ingestion endpoint. The API exposes the resolved NOTHING graph without exposing an internal database model. The API layer is storage-agnostic and is designed to run against the demo filesystem backend or a durable persistence backend.
+The public resource surface is read-oriented, while writes use one explicitly separated authenticated ingestion endpoint. The API exposes the resolved VERQIVIA graph without exposing an internal database model. The API layer is storage-agnostic and is designed to run against the demo filesystem backend or a durable persistence backend.
 
 The write boundary is deliberately not generic CRUD:
 
@@ -21,7 +21,7 @@ The contract is deployment-neutral: no production API hostname is assumed yet.
 - NOTHING protocol version: `0.1`
 - API document version: `1.0.0`
 
-Breaking API behavior changes require a new major path version. Changes to the underlying NOTHING data protocol require a protocol version change and must not silently reinterpret historical records.
+Breaking API behavior changes require a new major path version. Changes to the underlying VERQIVIA data protocol require a protocol version change and must not silently reinterpret historical records.
 
 ## Resources
 
