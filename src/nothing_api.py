@@ -1270,6 +1270,32 @@ class NothingApiHandler(BaseHTTPRequestHandler):
             identity = bundle.identity.record
             events = [item.record for item in bundle.events]
             evidence = [item.record for item in bundle.evidence]
+            proof_registry = _load_proof_registry()
+            proof_refs = []
+            for stored_proof in bundle.proofs:
+                proof_view = _proof_view(
+                    stored_proof.record,
+                    identity,
+                    proof_registry,
+                )
+                envelope = proof_view["envelope"]
+                verification = proof_view["verification"]
+                proof_refs.append(
+                    {
+                        "envelope_id": envelope["envelope_id"],
+                        "resource_hash": envelope["resource_hash"],
+                        "verification": {
+                            "valid": bool(verification.get("valid")),
+                            "state": (
+                                "VALID"
+                                if verification.get("valid") is True
+                                else "INVALID"
+                            ),
+                        },
+                        "url": f"/v1/proofs/{envelope['envelope_id']}",
+                    }
+                )
+
             profile = build_portable_profile(
                 identity,
                 verification_events=events,
@@ -1278,6 +1304,7 @@ class NothingApiHandler(BaseHTTPRequestHandler):
                 public_verify_url=f"/verify.html?id={nothing_id}",
                 api_url=f"/v1/identity/{nothing_id}",
                 discovery_url="/.well-known/verqivia.json",
+                cryptographic_proofs=proof_refs,
             )
         except NotFoundError:
             self._send_problem(
@@ -1287,7 +1314,7 @@ class NothingApiHandler(BaseHTTPRequestHandler):
                 instance,
             )
             return
-        except (ValidationError, RelationshipError, ValueError) as exc:
+        except (ValidationError, RelationshipError, StoreError, ValueError) as exc:
             self._send_problem(
                 503,
                 "PROFILE_UNAVAILABLE",
