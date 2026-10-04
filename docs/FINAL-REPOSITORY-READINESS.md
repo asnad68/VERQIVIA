@@ -1,4 +1,4 @@
-# NOTHING — Final Repository Readiness
+# VERQIVIA — Final Repository Readiness
 
 ## Scope freeze
 
@@ -24,7 +24,7 @@ The identity/verification core is the current product scope. Cryptocurrency paym
 | CI | Active | Unit, PostgreSQL integration, container builds and repository preflight |
 | Static-site security | Hardened | CSP added to public pages |
 | GitHub Pages workflow | Configured | Workflow requests Pages enablement and deploys site/ |
-| Payments | Frozen | Existing code retained; no new payment work in this scope |
+| Payments | Frozen | Existing code retained; no new payment work in this scope |\n| Controlled pilot fixture | Complete | Synthetic lifecycle dataset plus CI validation |\n| Interoperability boundary | Defined | W3C VC, OpenID4VCI, GLEIF/LEI and BIMI integration boundaries documented |\n| Operational security | Defined | Authentication, secret, network, data, key, logging and incident gates documented |\n| Backup/restore | Defined | Restore drill and integrity requirements documented |\n| Observability | Defined | Availability, DB, identity, verification and billing signals documented |
 
 ## What "complete" means
 
@@ -41,11 +41,11 @@ It does not mean:
 
 ## Branding / IP gate
 
-Before filing or spending materially on the **NOTHING** brand, the project must complete a professional trademark/name-clearance review in the intended jurisdictions and for the actual goods/services. A current public-source check identified existing U.S. registrations for NOTHING owned by Nothing Technology Limited, including technology-related goods/services, so the project must not assume that the exact word mark is freely available.
+Before filing or spending materially on the **VERQIVIA** brand, the project must complete a professional trademark/name-clearance review in the intended jurisdictions and for the actual goods/services. A current public-source check The current project name is VERQIVIA. A professional clearance is still required before filing or materially expanding commercial use.
 
-Project rule: do not represent the project as affiliated with Nothing Technology Limited, and do not describe the mark as registered until an appropriate clearance and filing strategy has been completed.
+Project rule: do not describe VERQIVIA as a registered trademark until an appropriate clearance and filing strategy has been completed.
 
-Tracking issue: #8 — Pre-commercial gate: trademark/name clearance for NOTHING.
+Tracking issue: #8 — Pre-commercial gate: trademark/name clearance for VERQIVIA.
 
 ## Final external launch gates
 
