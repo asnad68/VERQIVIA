@@ -423,7 +423,7 @@
     const safeId = xmlEscape(id);
     const href = htmlEscape(verifyUrl);
     return '<a xmlns="http://www.w3.org/2000/svg" href="' + href + '" target="_blank" rel="noopener noreferrer">' +
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 180" role="img" aria-label="NOTHING identity ' + safeId + '">' +
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 180" role="img" aria-label="VERQIVIA identity ' + safeId + '">' +
       '<rect x="10" y="10" width="500" height="160" rx="34" fill="#111"/>' +
       '<rect x="18" y="18" width="484" height="144" rx="28" fill="#f7f7f4"/>' +
       '<circle cx="92" cy="90" r="43" fill="#333"/>' +
