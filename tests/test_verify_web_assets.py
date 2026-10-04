@@ -106,6 +106,17 @@ class VerifyWebAssetTests(unittest.TestCase):
         )
         self.assertTrue(discovery["synthetic_demo"])
 
+    def test_commercial_surface_has_required_pages_and_links(self):
+        commercial = (ROOT / "site/commercial.html").read_text(encoding="utf-8")
+        terms = (ROOT / "site/terms.html").read_text(encoding="utf-8")
+        self.assertIn("Start a controlled pilot", commercial)
+        self.assertIn("Contact the project founder", commercial)
+        self.assertIn("./terms.html", commercial)
+        self.assertIn("Final production terms", terms)
+        self.assertIn("./pilot.html", terms)
+        self.assertTrue((ROOT / "site/commercial.html").is_file())
+        self.assertTrue((ROOT / "site/terms.html").is_file())
+
     def test_discovery_pointer_is_explicitly_synthetic(self):
         discovery = read_json(ROOT / "site/.well-known/verqivia.json")
         self.assertTrue(discovery["synthetic"])
