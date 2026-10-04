@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/asnad68/NOTHING/blob/main/schema/verification-event.schema.json",
-  "title": "NOTHING Verification Event",
+  "$id": "https://github.com/asnad68/VERQIVIA/blob/main/schema/verification-event.schema.json",
+  "title": "VERQIVIA Verification Event",
   "description": "An auditable event describing how a claim was evaluated.",
   "type": "object",
   "additionalProperties": false,
