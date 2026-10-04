@@ -716,6 +716,20 @@
     }
   }
 
+  $("#copy-link")?.addEventListener("click", async () => {
+    const target = window.location.href;
+    const state = $("#copy-state");
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error("Clipboard access is unavailable in this browser.");
+      await navigator.clipboard.writeText(target);
+      state.hidden = false;
+      state.textContent = "Verification link copied.";
+    } catch (error) {
+      state.hidden = false;
+      state.textContent = error.message || "The verification link could not be copied.";
+    }
+  });
+
   $("#retry")?.addEventListener("click", () => load());
 
   $("#search-form")?.addEventListener("submit", (event) => {
