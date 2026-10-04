@@ -100,12 +100,12 @@ class ReferenceApiHttpTests(unittest.TestCase):
         )
         self.assertEqual(
             profile["proofs"][0]["envelope_id"],
-            "CRD-000002",
+            "CRD-000001",
         )
         self.assertTrue(profile["proofs"][0]["verification"]["valid"])
         self.assertEqual(
             profile["proofs"][0]["url"],
-            "/v1/proofs/CRD-000002",
+            "/v1/proofs/CRD-000001",
         )
 
     def test_identity_verification_history_endpoint_returns_full_event_timeline(self) -> None:
