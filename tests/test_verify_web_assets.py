@@ -93,6 +93,15 @@ class VerifyWebAssetTests(unittest.TestCase):
         self.assertEqual(profile["claims"][0]["status"], identity["claims"][0]["status"])
         self.assertEqual(profile["claims"][0]["current_event_id"], "VER-000001")
 
+    def test_public_html_has_no_inline_style_attributes(self):
+        for html_path in (ROOT / "site").glob("*.html"):
+            html = html_path.read_text(encoding="utf-8")
+            self.assertNotRegex(
+                html,
+                r"\\bstyle\\s*=",
+                f"inline style attribute found in {html_path.name}",
+            )
+
     def test_ai_discovery_points_to_machine_endpoint(self):
         discovery = read_json(ROOT / "site/.well-known/verqivia-ai.json")
         self.assertEqual(discovery["document_type"], "VERQIVIA-AI-DISCOVERY")
