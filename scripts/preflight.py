@@ -104,6 +104,7 @@ def main() -> int:
     public_identity = public_bundle["identities"][0]
     public_proof = read_json(ROOT / "site/data/demo-proof.json")
     public_registry = read_json(ROOT / "site/data/demo-issuer-registry.json")
+    public_current_registry = read_json(ROOT / "site/.well-known/verqivia-keys.json")
     public_legacy_registry = read_json(ROOT / "site/.well-known/nothing-keys.json")
     if public_proof["resource_id"] != public_identity["nothing_id"]:
         raise AssertionError("public demo proof points to a different identity")
@@ -116,6 +117,10 @@ def main() -> int:
     if not public_proof_result["valid"]:
         raise AssertionError(
             f"public demo cryptographic proof verification failed: {public_proof_result['reason']}"
+        )
+    if public_current_registry != public_registry:
+        raise AssertionError(
+            "site/.well-known/verqivia-keys.json diverges from site/data/demo-issuer-registry.json"
         )
     if public_legacy_registry != issuer_registry:
         raise AssertionError(
