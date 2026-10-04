@@ -1,0 +1,338 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/asnad68/VERQIVIA/blob/main/schema/portable-verification-profile.schema.json",
+  "title": "VERQIVIA Portable Verification Profile 0.2-draft",
+  "description": "Experimental machine-readable exchange profile for portable organization and business-claim verification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile_type",
+    "profile_version",
+    "verqivia_id",
+    "subject",
+    "status",
+    "claims",
+    "relationships",
+    "links"
+  ],
+  "properties": {
+    "profile_type": {
+      "const": "VERQIVIA-PORTABLE-VERIFICATION-PROFILE"
+    },
+    "profile_version": {
+      "const": "0.2-draft"
+    },
+    "verqivia_id": {
+      "type": "string",
+      "pattern": "^NTH-[0-9]{6}$"
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "type"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "business",
+            "brand",
+            "digital_channel",
+            "authorized_agent",
+            "other"
+          ]
+        },
+        "website": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "REVOKED"
+      ]
+    },
+    "identifiers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "system",
+          "value"
+        ],
+        "properties": {
+          "system": {
+            "type": "string",
+            "minLength": 1
+          },
+          "value": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uri": {
+            "type": "string",
+            "format": "uri"
+          },
+          "role": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "domains": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "domain",
+          "status"
+        ],
+        "properties": {
+          "domain": {
+            "type": "string",
+            "pattern": "^(?=.{1,253}$)([A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+[A-Za-z]{2,63}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "VERIFIED",
+              "SOURCE-VERIFIED",
+              "SELF-CLAIMED",
+              "NOT-VERIFIED",
+              "REVOKED"
+            ]
+          },
+          "verification_event_id": {
+            "type": "string",
+            "pattern": "^VER-[0-9]{6}$"
+          }
+        }
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "claim_id",
+          "statement",
+          "status"
+        ],
+        "properties": {
+          "claim_id": {
+            "type": "string",
+            "pattern": "^CLM-[0-9]{6}$"
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "VERIFIED",
+              "SOURCE-VERIFIED",
+              "SELF-CLAIMED",
+              "NOT-VERIFIED",
+              "INCONCLUSIVE",
+              "REVOKED"
+            ]
+          },
+          "current_event_id": {
+            "type": "string",
+            "pattern": "^VER-[0-9]{6}$"
+          },
+          "scope": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^EVD-[0-9]{6}$"
+            },
+            "uniqueItems": true
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "valid_until": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "relationship_id",
+          "relationship_type",
+          "target",
+          "status"
+        ],
+        "properties": {
+          "relationship_id": {
+            "type": "string",
+            "pattern": "^REL-[0-9]{6}$"
+          },
+          "relationship_type": {
+            "type": "string",
+            "enum": [
+              "official_domain",
+              "brand_association",
+              "authorized_agent",
+              "authorized_partner",
+              "merchant_account",
+              "digital_channel"
+            ]
+          },
+          "target": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target_verqivia_id": {
+            "type": "string",
+            "pattern": "^NTH-[0-9]{6}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "VERIFIED",
+              "SOURCE-VERIFIED",
+              "SELF-CLAIMED",
+              "NOT-VERIFIED",
+              "REVOKED"
+            ]
+          },
+          "scope": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^EVD-[0-9]{6}$"
+            },
+            "uniqueItems": true
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "valid_until": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "resolution_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verification_event_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "evidence_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "links": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "verify"
+      ],
+      "properties": {
+        "verify": {
+          "type": "string",
+          "format": "uri"
+        },
+        "api": {
+          "type": "string",
+          "format": "uri"
+        },
+        "discovery": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "interop": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "w3c_vc": {
+          "type": "string",
+          "enum": [
+            "not_applied",
+            "adapter_available",
+            "adapter_planned"
+          ]
+        },
+        "openid4vci": {
+          "type": "string",
+          "enum": [
+            "not_applied",
+            "adapter_planned"
+          ]
+        },
+        "gleif_lei": {
+          "type": "string",
+          "enum": [
+            "not_present",
+            "present",
+            "external_resolution_planned"
+          ]
+        },
+        "bimi": {
+          "type": "string",
+          "enum": [
+            "not_present",
+            "referenced",
+            "external_resolution_planned"
+          ]
+        },
+        "gs1_digital_link": {
+          "type": "string",
+          "enum": [
+            "not_present",
+            "referenced",
+            "adapter_planned"
+          ]
+        }
+      }
+    },
+    "disclaimer": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
