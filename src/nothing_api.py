@@ -43,6 +43,7 @@ from src.nothing_billing import (
     SubscriptionBillingService,
 )
 from src.nothing_protocol import RelationshipError, resolve_claim_relationships
+from src.verqivia_profile import build_portable_profile
 from src.nothing_store import (
     ConflictError,
     FilesystemNothingStore,
@@ -1176,6 +1177,10 @@ class NothingApiHandler(BaseHTTPRequestHandler):
                 self._get_identity_verification_events(parts[2], instance)
                 return
 
+            if len(parts) == 4 and parts[:2] == ["v1", "identity"] and parts[2] and parts[3] == "profile":
+                self._get_identity_profile(parts[2], instance)
+                return
+
             if len(parts) == 4 and parts[:2] == ["v1", "procedures"]:
                 self._get_procedure(parts[2], parts[3], instance)
                 return
@@ -1243,6 +1248,56 @@ class NothingApiHandler(BaseHTTPRequestHandler):
         ]
         payload = {
             "data": identity_view,
+            "meta": _meta(
+                demo=self.store.demo,
+                generated_at=bundle.last_modified,
+            ),
+        }
+        self._serve_json(payload, bundle.last_modified)
+
+    def _get_identity_profile(self, nothing_id: str, instance: str) -> None:
+        if not NOTHING_ID_RE.fullmatch(nothing_id):
+            self._send_problem(
+                400,
+                "INVALID_ID",
+                "nothing_id must match NTH-XXXXXX.",
+                instance,
+            )
+            return
+
+        try:
+            bundle = self.store.get_identity_bundle(nothing_id)
+            identity = bundle.identity.record
+            events = [item.record for item in bundle.events]
+            evidence = [item.record for item in bundle.evidence]
+            profile = build_portable_profile(
+                identity,
+                verification_events=events,
+                evidence_records=evidence,
+                procedure_registry=bundle.registry,
+                public_verify_url=f"/verify.html?id={nothing_id}",
+                api_url=f"/v1/identity/{nothing_id}",
+                discovery_url="/.well-known/verqivia.json",
+            )
+        except NotFoundError:
+            self._send_problem(
+                404,
+                "NOT_FOUND",
+                "The requested VERQIVIA ID does not exist.",
+                instance,
+            )
+            return
+        except (ValidationError, RelationshipError, ValueError) as exc:
+            self._send_problem(
+                503,
+                "PROFILE_UNAVAILABLE",
+                f"The portable verification profile could not be built: {exc}",
+                instance,
+            )
+            return
+
+        payload = {
+            "data": profile,
             "meta": _meta(
                 demo=self.store.demo,
                 generated_at=bundle.last_modified,
