@@ -87,6 +87,27 @@ class ReferenceApiHttpTests(unittest.TestCase):
         self.assertEqual(response.status, 400)
         self.assertEqual(json.loads(body)["code"], "INVALID_ID")
 
+    def test_portable_profile_endpoint_exposes_proof_reference(self) -> None:
+        response, body = self.request(
+            "/v1/identity/NTH-000001/profile"
+        )
+        self.assertEqual(response.status, 200)
+        payload = json.loads(body)
+        profile = payload["data"]
+        self.assertEqual(
+            profile["profile_type"],
+            "VERQIVIA-PORTABLE-VERIFICATION-PROFILE",
+        )
+        self.assertEqual(
+            profile["proofs"][0]["envelope_id"],
+            "CRD-000002",
+        )
+        self.assertTrue(profile["proofs"][0]["verification"]["valid"])
+        self.assertEqual(
+            profile["proofs"][0]["url"],
+            "/v1/proofs/CRD-000002",
+        )
+
     def test_identity_verification_history_endpoint_returns_full_event_timeline(self) -> None:
         response, body = self.request(
             "/v1/identity/NTH-000001/verification-events"
