@@ -1,6 +1,6 @@
 # Identity → Claim → Evidence → Verification Event → Procedure
 
-NOTHING keeps these concepts separate so that a technical record cannot accidentally become an unsupported trust assertion.
+VERQIVIA keeps these concepts separate so that a technical record cannot accidentally become an unsupported trust assertion.
 
 ```text
 Identity (NTH-XXXXXX)
@@ -59,7 +59,7 @@ A verification event can establish only a limited scope.
 
 A procedure can define a verification method without establishing that every possible fact about a business is true.
 
-Therefore NOTHING must not use the shortcut:
+Therefore VERQIVIA must not use the shortcut:
 
 `record exists → business is trustworthy`
 
@@ -71,7 +71,7 @@ A mismatch is surfaced explicitly instead of silently changing historical or ide
 
 ## v0.1 branching rule
 
-A claim uses one linear supersession chain. Parallel branches are rejected until NOTHING defines an explicit conflict-resolution model.
+A claim uses one linear supersession chain. Parallel branches are rejected until VERQIVIA defines an explicit conflict-resolution model.
 
 ## Production principle
 
