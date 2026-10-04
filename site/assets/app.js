@@ -614,6 +614,14 @@
 
     renderProof(proofResult);
 
+    const profileLink = $("#profile-link");
+    if (profileLink) {
+      profileLink.href =
+        record.mode === "live" && API_BASE
+          ? API_BASE + "/v1/identity/" + encodeURIComponent(record.nothingId) + "/profile"
+          : "./data/portable-profile-demo.json";
+    }
+
     const sourceNote = $("#source-note");
     if (record.liveError) {
       sourceNote.hidden = false;
