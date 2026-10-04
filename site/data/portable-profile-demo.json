@@ -9,13 +9,7 @@
   },
   "status": "ACTIVE",
   "identifiers": [],
-  "domains": [
-    {
-      "domain": "example.com",
-      "status": "SOURCE-VERIFIED",
-      "verification_event_id": "VER-000001"
-    }
-  ],
+  "domains": [],
   "claims": [
     {
       "claim_id": "CLM-000001",
