@@ -61,6 +61,34 @@ The long-term vision is:
 
 > **One business identity. Many proofs. One simple way to verify.**
 
+## Product Direction — Portable Verification Layer
+
+The intended product is not a second trademark registry. It is a reusable verification layer that lets an organization publish a structured identity once and lets procurement teams, marketplaces, business software and AI agents inspect that identity wherever it is used.
+
+The product surfaces are:
+
+1. **Verify Web** for people.
+2. **Portable Verification Profile** for machine-readable exchange.
+3. **API** for software and marketplaces.
+4. **◇ verification marker** as a human-facing entry point to the canonical record.
+5. **Domain discovery** through `.well-known/verqivia.json` as a pointer to the canonical record.
+
+See:
+- `docs/PRODUCT-VISION.md`
+- `docs/PORTABLE-VERIFICATION-PROFILE.md`
+- `schema/portable-verification-profile.schema.json`
+- `examples/portable-profile.example.json`
+
+### Why this can matter to a large company
+
+A global company does not need VERQIVIA to obtain trademark ownership. The potential value is elsewhere: external parties could resolve a company identity and inspect a specific claim, its evidence, verification scope, and lifecycle instead of trusting a copied name, logo or claimed relationship.
+
+The commercial hypothesis is therefore:
+
+> **Publish identity once. Let others verify it anywhere.**
+
+This remains a product hypothesis until real organizations participate in controlled pilots.
+
 ### Official organization control
 
 VERQIVIA separates authentication from authorization.
@@ -388,7 +416,11 @@ A business can present a portable and updateable identity record.
 
 Software can query a structured record and receive a clear result.
 
-If the prototype cannot achieve these three goals simply and reliably, the product needs to change.
+### For ecosystems
+
+The same identity can be resolved through a public verification page, a portable profile, a future production API and a domain discovery pointer.
+
+If the prototype cannot achieve these four goals simply and reliably, the product needs to change.
 
 ---
 
