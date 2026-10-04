@@ -1,0 +1,64 @@
+# VERQIVIA deployment blueprint
+# This file prepares the production topology; applying it still requires
+# an authorized Render workspace and real external authentication settings.
+
+services:
+  - type: web
+    name: verqivia-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: frankfurt
+    branch: main
+    autoDeploy: true
+    healthCheckPath: /readyz
+    envVars:
+      - key: NOTHING_STORAGE_BACKEND
+        value: postgres
+      - key: NOTHING_AUTH_MODE
+        value: oidc-jwt
+      - key: NOTHING_TENANCY_MODE
+        value: single-tenant
+      - key: NOTHING_API_HOST
+        value: 0.0.0.0
+      - key: NOTHING_API_PORT
+        value: 8080
+      - key: NOTHING_POSTGRES_DSN
+        fromDatabase:
+          name: verqivia-postgres
+          property: connectionString
+      - key: NOTHING_AUTH_ISSUER
+        sync: false
+      - key: NOTHING_AUTH_AUDIENCE
+        sync: false
+      - key: NOTHING_AUTH_JWKS_URI
+        sync: false
+      - key: NOTHING_AUTH_REQUIRED_SCOPE
+        value: nothing:ingest
+      - key: NOTHING_AUTH_ALLOWED_ALGORITHMS
+        value: RS256
+      - key: NOTHING_DOMAIN_CHALLENGE_SECRET
+        generateValue: true
+      - key: NOTHING_PUBLIC_SITE_ORIGIN
+        value: https://asnad68.github.io/VERQIVIA
+      - key: NOTHING_TRUST_PROXY_HEADERS
+        value: false
+
+  - type: web
+    name: verqivia-site
+    runtime: static
+    buildCommand: echo "VERQIVIA static site — no build step required"
+    staticPublishPath: ./site
+    plan: free
+    region: frankfurt
+    branch: main
+    autoDeploy: true
+
+databases:
+  - name: verqivia-postgres
+    databaseName: verqivia_prod
+    user: verqivia_runtime
+    plan: free
+    postgresMajorVersion: "15"
+    ipAllowList: []
