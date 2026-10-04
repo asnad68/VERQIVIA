@@ -3,7 +3,7 @@
 
   const DEMO_DATA_URL = "./data/demo-bundle.json";
   const DEMO_PROOF_URL = "./data/demo-proof.json";
-  const DEMO_ISSUER_REGISTRY_URL = "./.well-known/verqivia-keys.json";
+  const DEMO_ISSUER_REGISTRY_URL = "./data/demo-issuer-registry.json?v=1";
   const API_BASE = String(window.NOTHING_API_BASE || "").replace(/\/$/, "");
   const ID_PATTERN = /^NTH-[0-9]{6}$/;
 
