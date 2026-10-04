@@ -83,6 +83,7 @@ class PortableProfileTests(unittest.TestCase):
         )
         self.assertEqual(profile["claims"][0]["status"], "SOURCE-VERIFIED")
         self.assertEqual(profile["claims"][0]["current_event_id"], "VER-000001")
+        self.assertEqual(profile["claims"][0]["scope"], self.events[0]["result"]["scope"])
 
     def test_revoked_identity_maps_to_revoked_profile(self):
         identity = json.loads(json.dumps(self.identity))
