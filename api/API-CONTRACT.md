@@ -59,6 +59,22 @@ A retry using the same authenticated actor, idempotency key and request fingerpr
 
 Procedure versions are not accepted by this endpoint. Procedure creation and semantic version changes remain a governed, immutable resource operation.
 
+### GET /v1/identity/{nothing_id}/profile
+
+Returns the additive Portable Verification Profile for one identity.
+
+This endpoint is intended for:
+
+- procurement and compliance systems;
+- marketplaces;
+- business applications;
+- security tooling;
+- AI agents and other machine consumers.
+
+The profile is designed to be consumed without screen scraping. It contains the VERQIVIA identifier, subject, selected identifiers/domains, claim-level verification status, relationships, verification counts, discovery links and interoperability hints.
+
+The profile does not grant trademark rights, certify a company generally, or provide a universal trust score.
+
 ### GET /v1/identity/{nothing_id}
 
 Returns one identity and its resolved claims.
