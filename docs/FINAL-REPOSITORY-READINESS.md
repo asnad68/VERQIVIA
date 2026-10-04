@@ -66,7 +66,7 @@ These are intentionally outside the repository because they depend on the real d
 
 ## Portable verification layer
 
-The repository now includes an additive 0.2-draft portable verification profile, a profile builder, a schema/example, a public discovery pointer and a public ecosystem use-case page. Production endpoints and external conformance testing remain launch gates.
+The repository now includes an additive 0.2-draft portable verification profile, a profile builder, a schema/example, a public discovery pointer and a public ecosystem use-case page. Production endpoints and external conformance testing remain launch gates. The v1 API now exposes the portable profile endpoint, and an AI/machine integration guide plus machine discovery document are published.
 
 ## Payment boundary
 
