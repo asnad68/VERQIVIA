@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/asnad68/NOTHING/blob/main/schema/procedure.schema.json",
-  "title": "NOTHING Verification Procedure",
-  "description": "A versioned, named procedure that defines how a NOTHING claim may be evaluated.",
+  "$id": "https://github.com/asnad68/VERQIVIA/blob/main/schema/procedure.schema.json",
+  "title": "VERQIVIA Verification Procedure",
+  "description": "A versioned, named procedure that defines how a VERQIVIA claim may be evaluated.",
   "type": "object",
   "additionalProperties": false,
   "required": [
