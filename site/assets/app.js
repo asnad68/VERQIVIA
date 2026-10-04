@@ -468,7 +468,12 @@
           : "status-neutral");
 
     const badge = $("#data-mode");
-    badge.textContent = record.mode === "live" ? "LIVE API" : "DEMO DATA";
+    badge.textContent =
+      record.liveError
+        ? "DEMO FALLBACK"
+        : record.mode === "live"
+          ? "LIVE API"
+          : "DEMO DATA";
 
     const mismatches = record.mode === "demo"
       ? claims.filter((claim) => {
