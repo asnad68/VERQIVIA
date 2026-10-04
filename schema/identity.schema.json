@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/asnad68/NOTHING/blob/main/schema/identity.schema.json",
-  "title": "NOTHING Business Identity Record",
-  "description": "Experimental machine-readable identity record for the NOTHING project.",
+  "$id": "https://github.com/asnad68/VERQIVIA/blob/main/schema/identity.schema.json",
+  "title": "VERQIVIA Business Identity Record",
+  "description": "Experimental machine-readable identity record for the VERQIVIA project.",
   "type": "object",
   "additionalProperties": false,
   "required": [
