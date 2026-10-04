@@ -225,7 +225,7 @@ The visual mark only has meaning when it points to a verifiable record.
 
 VERQIVIA is intended to be machine-readable as well as human-readable.
 
-A future API may allow software, marketplaces, websites and AI agents to resolve a VERQIVIA ID and inspect its claims.
+The v1 API now exposes a machine-readable portable profile endpoint so software, marketplaces, websites and AI agents can resolve a VERQIVIA ID and inspect its claims without screen scraping.
 
 Conceptual example:
 
@@ -524,6 +524,18 @@ python -m unittest discover -s tests -v
 ```
 
 The structural validator checks data contracts only. The protocol resolver checks cross-record relationships and procedure compatibility. Neither one independently proves that an external source is truthful.
+
+### Machine / AI Consumption
+
+The preferred machine endpoint is:
+
+```
+GET /v1/identity/{nothing_id}/profile
+```
+
+It returns the additive VERQIVIA Portable Verification Profile (0.2-draft). Consumers should inspect claim-level status, scope, revocation and verification context rather than treating VERQIVIA as a universal trust score.
+
+See `docs/AI-MACHINE-INTEGRATION.md`.
 
 ### API Contract
 
