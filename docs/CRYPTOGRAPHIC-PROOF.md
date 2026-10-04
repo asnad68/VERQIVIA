@@ -1,8 +1,8 @@
-# NOTHING Cryptographic Proof Layer v0.1
+# VERQIVIA Cryptographic Proof Layer v0.1
 
 ## Purpose
 
-This layer cryptographically binds a NOTHING resource to an issuer key. It separates integrity/authorship proof from the business meaning of the underlying claim.
+This layer cryptographically binds a VERQIVIA resource to an issuer key. It separates integrity/authorship proof from the business meaning of the underlying claim.
 
 A successful cryptographic check proves that the exact signed resource hash and proof metadata were signed by the configured issuer key. It does not prove that the underlying claim is true or that the issuer is legally authoritative.
 
@@ -29,7 +29,7 @@ Detached proof keeps the existing v0.1 resource contracts stable.
 
 ## Canonicalization
 
-RFC 8785 explains why deterministic JSON is required for repeatable hashing and signing. NOTHING v0.1 adopts its UTF-16 object-key ordering model but intentionally rejects floating-point numbers. Therefore this release is not claimed to be a full RFC 8785 implementation.
+RFC 8785 explains why deterministic JSON is required for repeatable hashing and signing. VERQIVIA v0.1 adopts its UTF-16 object-key ordering model but intentionally rejects floating-point numbers. Therefore this release is not claimed to be a full RFC 8785 implementation.
 
 This conservative restriction prevents cross-language number-rendering ambiguity until a fully tested JCS implementation is adopted.
 
@@ -37,7 +37,7 @@ This conservative restriction prevents cross-language number-rendering ambiguity
 
 The prototype uses Ed25519 through the Python cryptography library. Public keys are raw 32-byte values and private seeds are raw 32-byte values, encoded as unpadded base64url.
 
-W3C's Data Integrity EdDSA Cryptosuites v1.0 is a Recommendation. NOTHING v0.1 does not claim W3C Data Integrity conformance; it defines a smaller envelope so the project's trust model can be tested before a standards-profile implementation is adopted.
+W3C's Data Integrity EdDSA Cryptosuites v1.0 is a Recommendation. VERQIVIA v0.1 does not claim W3C Data Integrity conformance; it defines a smaller envelope so the project's trust model can be tested before a standards-profile implementation is adopted.
 
 ## Issuer registry
 
@@ -94,4 +94,4 @@ Those remain responsibilities of evidence, verification procedures and authoriza
 
 ## Production gate
 
-Before production use, NOTHING must add cross-runtime test vectors, an audited key-management process, issuer onboarding/governance, compromise and rotation drills, immutable issuer-registry change records, and proof verification in every public read path.
+Before production use, VERQIVIA must add cross-runtime test vectors, an audited key-management process, issuer onboarding/governance, compromise and rotation drills, immutable issuer-registry change records, and proof verification in every public read path.
