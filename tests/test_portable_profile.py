@@ -51,7 +51,26 @@ class PortableProfileTests(unittest.TestCase):
         self.assertEqual(profile["profile_type"], PROFILE_TYPE)
         self.assertEqual(profile["profile_version"], PROFILE_VERSION)
         self.assertEqual(profile["verqivia_id"], self.identity["nothing_id"])
-        self.assertNotIn("cryptographic_proof", profile)
+        self.assertNotIn("proofs", profile)
+
+    def test_profile_can_include_cryptographic_proof_references(self):
+        profile = build_portable_profile(
+            self.identity,
+            verification_events=self.events,
+            evidence_records=self.evidence,
+            procedure_registry=self.registry,
+            cryptographic_proofs=[
+                {
+                    "envelope_id": "CRD-000002",
+                    "resource_hash": "4748a2e75473d64c6b56ee195f12e64cc558c31bf8d7ea40a99337d8bd2b1700",
+                    "verification": {"valid": True, "state": "VALID"},
+                    "url": "/v1/proofs/CRD-000002",
+                }
+            ],
+        )
+        self.assertEqual(profile["proofs"][0]["envelope_id"], "CRD-000002")
+        self.assertTrue(profile["proofs"][0]["verification"]["valid"])
+        self.assertEqual(profile["proofs"][0]["verification"]["state"], "VALID")
 
     def test_claims_follow_resolved_status(self):
         identity = json.loads(json.dumps(self.identity))
