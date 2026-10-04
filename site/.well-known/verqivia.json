@@ -6,5 +6,7 @@
   "verify_url": "https://asnad68.github.io/VERQIVIA/verify.html?id=NTH-000001",
   "api_url": null,
   "notice": "Synthetic public demo pointer. Domain publication is a discovery signal only and is not by itself proof of legal ownership or authorization.",
-  "synthetic": true
+  "synthetic": true,
+  "ai_discovery": "/.well-known/verqivia-ai.json",
+  "portable_profile_url": "/data/portable-profile-demo.json"
 }
