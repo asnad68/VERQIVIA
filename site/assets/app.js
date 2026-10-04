@@ -465,6 +465,8 @@
           : currentEvent(events, claim.claim_id);
 
         const eventStatus = event?.result?.status;
+        const currentStatus = eventStatus || claim.status || claim.recorded_status || "UNKNOWN";
+        const recordedStatus = claim.recorded_status || claim.status || "UNKNOWN";
         const evidenceIds = event?.evidence || event?.evidence_ids || [];
 
         return `
@@ -474,18 +476,17 @@
                 claim.claim_id || claim.id
               )}</span>
               <span class="status ${statusClass(
-                claim.status || claim.recorded_status
+                currentStatus
               )}">${escapeHtml(
-                claim.status || claim.recorded_status
+                currentStatus
               )}</span>
             </div>
             <p class="claim-statement">${escapeHtml(
               claim.statement
             )}</p>
             <div class="meta-line">
-              <span>Current event: ${escapeHtml(
-                eventStatus || "NONE"
-              )}</span>
+              <span>Recorded: ${escapeHtml(recordedStatus)}</span>
+              <span>Current event: ${escapeHtml(eventStatus || "NONE")}</span>
               <span>Evidence: ${evidenceIds.length}</span>
             </div>
           </article>`;
