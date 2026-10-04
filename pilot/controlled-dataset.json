@@ -1,0 +1,100 @@
+{
+  "dataset_id": "VERQIVIA-PILOT-SYNTHETIC-001",
+  "version": "0.1",
+  "synthetic": true,
+  "purpose": "Controlled pilot fixture for identity onboarding, evidence linkage, verification supersession and identity revocation handling.",
+  "identities": [
+    {
+      "nothing_id": "NTH-010001",
+      "version": "0.1",
+      "subject": {
+        "name": "VERQIVIA Pilot Synthetic Business",
+        "type": "business",
+        "website": "https://pilot.example.com"
+      },
+      "claims": [
+        {
+          "claim_id": "CLM-010001",
+          "statement": "pilot.example.com is the official website for the synthetic pilot organization.",
+          "status": "SOURCE-VERIFIED",
+          "source": {
+            "type": "official_website",
+            "reference": "https://pilot.example.com",
+            "checked_at": "2026-10-04T00:00:00Z"
+          },
+          "valid_from": "2026-10-04T00:00:00Z"
+        }
+      ],
+      "revocation": {
+        "status": "NOT_REVOKED"
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "EVD-010001",
+      "version": "0.1",
+      "type": "official_website",
+      "source": {
+        "reference": "https://pilot.example.com",
+        "title": "Synthetic pilot website",
+        "publisher": "VERQIVIA synthetic fixture",
+        "accessed_at": "2026-10-04T00:00:00Z"
+      },
+      "collected_at": "2026-10-04T00:00:00Z",
+      "integrity": {
+        "method": "none"
+      },
+      "notes": "Synthetic evidence fixture; no real organization is represented."
+    }
+  ],
+  "verification_events": [
+    {
+      "event_id": "VER-010001",
+      "version": "0.1",
+      "occurred_at": "2026-10-04T00:00:00Z",
+      "subject": "NTH-010001",
+      "claim_id": "CLM-010001",
+      "procedure": {
+        "id": "NOTHING-BASIC-SOURCE-CHECK",
+        "version": "0.1"
+      },
+      "verifier": {
+        "type": "hybrid",
+        "identifier": "verqivia-pilot-fixture"
+      },
+      "evidence": [
+        "EVD-010001"
+      ],
+      "result": {
+        "status": "SOURCE-VERIFIED",
+        "scope": "Synthetic fixture only: the cited website is treated as supporting the stated pilot claim.",
+        "reason": "Controlled pilot demonstration event."
+      }
+    },
+    {
+      "event_id": "VER-010002",
+      "version": "0.1",
+      "occurred_at": "2026-10-04T00:05:00Z",
+      "subject": "NTH-010001",
+      "claim_id": "CLM-010001",
+      "supersedes": "VER-010001",
+      "procedure": {
+        "id": "NOTHING-BASIC-SOURCE-CHECK",
+        "version": "0.1"
+      },
+      "verifier": {
+        "type": "hybrid",
+        "identifier": "verqivia-pilot-fixture-review"
+      },
+      "evidence": [
+        "EVD-010001"
+      ],
+      "result": {
+        "status": "SOURCE-VERIFIED",
+        "scope": "Synthetic fixture only: the later event explicitly supersedes the earlier verification event.",
+        "reason": "Controlled pilot lifecycle/supersession demonstration."
+      }
+    }
+  ]
+}
