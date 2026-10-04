@@ -4,7 +4,7 @@
     "profile_version": "0.2-draft",
     "verqivia_id": "NTH-000001",
     "subject": {
-      "name": "Example Corporation",
+      "name": "NOTHING Experimental Identity",
       "type": "business",
       "website": "https://example.com"
     },
@@ -14,7 +14,7 @@
     "claims": [
       {
         "claim_id": "CLM-000001",
-        "statement": "This is a synthetic demonstration of a portable VERQIVIA business identity profile.",
+        "statement": "This record is an experimental demonstration of the NOTHING identity model.",
         "status": "SOURCE-VERIFIED",
         "current_event_id": "VER-000001",
         "scope": "Synthetic demonstration only; this record does not verify a real organization.",
