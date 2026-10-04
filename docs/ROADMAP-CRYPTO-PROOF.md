@@ -1,4 +1,4 @@
-# NOTHING Crypto Proof Stage
+# VERQIVIA Crypto Proof Stage
 
 ## Stage
 
