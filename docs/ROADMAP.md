@@ -1,4 +1,4 @@
-# NOTHING Roadmap
+# VERQIVIA Roadmap
 
 ## Phase 0 — Concept
 - [x] Define the core concept
@@ -6,10 +6,10 @@
 - [x] Establish legal/disclaimer boundaries
 
 ## Phase 0.5 — Branding / IP Gate
-- [ ] Conduct professional trademark/name clearance for `NOTHING`
+- [ ] Conduct professional trademark/name clearance for `VERQIVIA`
 - [ ] Define intended goods/services and Nice classes
 - [ ] Check priority/clearance in intended launch jurisdictions
-- [ ] Decide whether the exact `NOTHING` mark is commercially usable before filing or paid brand expansion
+- [ ] Decide whether the exact `VERQIVIA` mark is commercially usable before filing or paid brand expansion
 
 ## Phase 1 — Identity Schema
 - [x] Define `NTH-XXXXXX` identifier format
@@ -40,7 +40,7 @@
 - [x] Build verification-event timeline
 - [x] Build procedure reference display
 - [x] Build revocation display
-- [x] Add human-readable Nothing Mark
+- [x] Add human-readable VERQIVIA Mark
 - [x] Add CSP baseline to static verifier
 - [ ] Deploy static verifier with production TLS/CDN
 
