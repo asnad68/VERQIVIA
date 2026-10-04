@@ -1,14 +1,14 @@
-# NOTHING Technical Architecture
+# VERQIVIA Technical Architecture
 
 ## 1. Purpose
 
-NOTHING is an experimental business-identity and verification infrastructure project.
+VERQIVIA is an experimental business-identity and verification infrastructure project.
 
 The system is designed around a simple separation:
 
 **Identity → Claims → Evidence → Verification → Authorization → Revocation**
 
-NOTHING does not attempt to replace government registration, trademarks, certificates, banking credentials, or legal authority.
+VERQIVIA does not attempt to replace government registration, trademarks, certificates, banking credentials, or legal authority.
 
 ## 2. Repository layers
 
@@ -21,7 +21,7 @@ NOTHING does not attempt to replace government registration, trademarks, certifi
 
 ## 3. Identity
 
-A NOTHING identity uses an identifier such as `NTH-000001`.
+A VERQIVIA identity uses an identifier such as `NTH-000001`.
 
 The identifier is an application-level identifier. It is not a government registration number and has no legal effect by itself.
 
@@ -42,7 +42,7 @@ The model deliberately avoids a single trust score.
 
 ## 5. Verification states
 
-- `VERIFIED` — verified according to a defined NOTHING verification procedure
+- `VERIFIED` — verified according to a defined VERQIVIA verification procedure
 - `SOURCE-VERIFIED` — supported by a specified source
 - `SELF-CLAIMED` — supplied by the subject without independent verification
 - `REVOKED` — no longer valid
@@ -94,7 +94,7 @@ Future implementation should follow:
 
 ## 10. Privacy
 
-NOTHING follows the principle:
+VERQIVIA follows the principle:
 
 > Collect less. Prove more.
 
@@ -108,7 +108,7 @@ Research alignment does not imply formal compliance or certification.
 
 ## 12. Non-goals
 
-NOTHING is not currently:
+VERQIVIA is not currently:
 
 - a government identity system
 - a trademark registry
