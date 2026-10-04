@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'">
+  <meta name="description" content="Integrate VERQIVIA with software, procurement systems, marketplaces and AI agents using HTTPS, JSON and OpenAPI.">
+  <meta property="og:title" content="Integrate — VERQIVIA">
+  <meta property="og:description" content="A practical developer path for resolving VERQIVIA identities and inspecting claim-level verification.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://asnad68.github.io/VERQIVIA/integrate.html">
+  <title>Integrate — VERQIVIA</title>
+  <link rel="stylesheet" href="./assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="./">◇ VERQIVIA</a>
+  <nav aria-label="Primary">
+    <a href="./verify.html">Verify</a>
+    <a href="./register.html">Register</a>
+    <a href="./pilot.html">Pilot</a>
+    <a href="./commercial.html">Commercial</a>
+    <a class="active" href="./integrate.html">Integrate</a>
+    <a href="./use-cases.html">Use Cases</a>
+    <a href="https://github.com/asnad68/VERQIVIA" rel="noreferrer">Repository</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero shell">
+    <div class="eyebrow">DEVELOPER / AI INTEGRATION</div>
+    <h1>Resolve one identity.<br>Inspect the claims behind it.</h1>
+    <p class="lead">VERQIVIA uses ordinary HTTPS, JSON and OpenAPI. A consuming application does not need to scrape the web page or run a proprietary VERQIVIA SDK.</p>
+    <div class="input-row" style="margin-top:28px;">
+      <a class="button" href="./data/portable-profile-demo.json">Open demo profile →</a>
+      <a class="button secondary" href="https://github.com/asnad68/VERQIVIA/blob/main/api/openapi.json" rel="noreferrer">Open OpenAPI contract</a>
+    </div>
+  </section>
+
+  <section class="feature-grid shell" aria-label="Integration steps">
+    <article class="feature"><span class="feature-number">01</span><h2>Resolve</h2><p>Start with a VERQIVIA ID, or discover a participating domain's <code>/.well-known/verqivia.json</code> pointer.</p></article>
+    <article class="feature"><span class="feature-number">02</span><h2>Read</h2><p>Request <code>GET /v1/identity/{nothing_id}/profile</code> and consume the portable profile as JSON.</p></article>
+    <article class="feature"><span class="feature-number">03</span><h2>Decide</h2><p>Inspect claim status, scope, current event, evidence references, lifecycle and—when present—cryptographic proof references.</p></article>
+  </section>
+
+  <section class="principles shell">
+    <div><div class="eyebrow">REFERENCE FLOW</div><h2>Keep policy outside the protocol.</h2></div>
+    <div>
+      <pre class="panel" style="overflow:auto;"><code>GET /v1/identity/NTH-000001/profile
+Accept: application/json
+
+{
+  "data": {
+    "verqivia_id": "NTH-000001",
+    "status": "ACTIVE",
+    "claims": [
+      {
+        "claim_id": "CLM-000001",
+        "status": "SOURCE-VERIFIED",
+        "current_event_id": "VER-000001",
+        "scope": "..."
+      }
+    ]
+  }
+}</code></pre>
+      <p class="note">Illustrative response shape. Production API host, authentication and data vary by deployment.</p>
+    </div>
+  </section>
+
+  <section class="feature-grid shell">
+    <article class="feature"><span class="feature-number">A</span><h2>Procurement</h2><p>Resolve the supplier identity, inspect the exact claim you care about and apply your own onboarding policy.</p></article>
+    <article class="feature"><span class="feature-number">B</span><h2>Marketplaces</h2><p>Store the VERQIVIA ID as a durable reference and re-check lifecycle state instead of copying a badge once.</p></article>
+    <article class="feature"><span class="feature-number">C</span><h2>AI Agents</h2><p>Use the profile as one verification input before relying on unfamiliar business identities, domains or relationships.</p></article>
+  </section>
+
+  <section class="demo shell">
+    <div class="demo-panel">
+      <div><div class="eyebrow">IMPORTANT</div><h2>Do not turn one status into a universal trust score.</h2><p>A verified domain claim is not proof of financial health, reputation, legal ownership or every other fact about the organization.</p></div>
+      <a class="button secondary" href="./security.html">Read security boundaries →</a>
+    </div>
+  </section>
+
+  <section class="principles shell">
+    <div><div class="eyebrow">MACHINE DISCOVERY</div><h2>Published discovery documents</h2></div>
+    <div>
+      <p><code>/.well-known/verqivia.json</code> — points to the identity/discovery surface.</p>
+      <p><code>/.well-known/verqivia-ai.json</code> — machine-readable endpoint hints and AI integration rules.</p>
+      <p><code>/data/portable-profile-demo.json</code> — public synthetic profile for testing the exchange format.</p>
+      <p><a href="https://github.com/asnad68/VERQIVIA/blob/main/docs/AI-MACHINE-INTEGRATION.md" rel="noreferrer">Read the full AI / Machine Integration Guide →</a></p>
+    </div>
+  </section>
+</main>
+
+<footer class="footer shell">
+  <span>VERQIVIA · Developer / AI Integration · Early Access</span>
+  <span><a href="./commercial.html">Commercial</a> · <a href="./privacy.html">Privacy</a> · <a href="./terms.html">Terms</a></span>
+</footer>
+</body>
+</html>
