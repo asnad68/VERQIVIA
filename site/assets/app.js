@@ -3,7 +3,7 @@
 
   const DEMO_DATA_URL = "./data/demo-bundle.json";
   const DEMO_PROOF_URL = "./data/demo-proof.json";
-  const DEMO_ISSUER_REGISTRY_URLS = ["./data/demo-issuer-registry.json?v=2", "./.well-known/verqivia-keys.json?v=2"];
+  const DEMO_ISSUER_REGISTRY_URLS = ["./data/demo-issuer-registry.json?v=2", "./data/demo-issuer-registry.json"];
   const API_BASE = String(window.NOTHING_API_BASE || "").replace(/\/$/, "");
   const ID_PATTERN = /^NTH-[0-9]{6}$/;
 
@@ -273,7 +273,44 @@
       return { state: "INVALID", reason: "The proof issuer/key is not present in the published registry." };
     }
     if (!["ACTIVE", "DEMO"].includes(issuer.status) || key.status !== "ACTIVE") {
-      return { state: "INVALID", reason: "The proof issuer or key is not active." };
+      return {
+        state: "INVALID",
+        reason: "The proof issuer or key is not active.",
+        calculatedHash,
+        issuerId,
+        keyId
+      };
+    }
+
+    const created = new Date(proof.proof?.created || "");
+    const validFrom = key.valid_from ? new Date(key.valid_from) : null;
+    const validUntil = key.valid_until ? new Date(key.valid_until) : null;
+    if (Number.isNaN(created.getTime())) {
+      return {
+        state: "INVALID",
+        reason: "The proof creation timestamp is invalid.",
+        calculatedHash,
+        issuerId,
+        keyId
+      };
+    }
+    if (validFrom && created < validFrom) {
+      return {
+        state: "INVALID",
+        reason: "The proof was created before the issuer key became valid.",
+        calculatedHash,
+        issuerId,
+        keyId
+      };
+    }
+    if (validUntil && created > validUntil) {
+      return {
+        state: "INVALID",
+        reason: "The proof was created after the issuer key expired.",
+        calculatedHash,
+        issuerId,
+        keyId
+      };
     }
 
     const signingDocument = {
