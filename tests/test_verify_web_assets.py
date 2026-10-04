@@ -81,6 +81,19 @@ class VerifyWebAssetTests(unittest.TestCase):
         ):
             self.assertTrue((ROOT / relative_path).is_file(), relative_path)
 
+    def test_ai_discovery_points_to_machine_endpoint(self):
+        discovery = read_json(ROOT / "site/.well-known/verqivia-ai.json")
+        self.assertEqual(discovery["document_type"], "VERQIVIA-AI-DISCOVERY")
+        self.assertEqual(
+            discovery["profile"]["name"],
+            "VERQIVIA-PORTABLE-VERIFICATION-PROFILE",
+        )
+        self.assertEqual(
+            discovery["endpoints"]["portable_profile"],
+            "/v1/identity/{nothing_id}/profile",
+        )
+        self.assertTrue(discovery["synthetic_demo"])
+
     def test_discovery_pointer_is_explicitly_synthetic(self):
         discovery = read_json(ROOT / "site/.well-known/verqivia.json")
         self.assertTrue(discovery["synthetic"])
