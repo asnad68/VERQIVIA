@@ -27,6 +27,7 @@ class OpenApiContractTests(unittest.TestCase):
             "/v1/verification-events/{event_id}",
             "/v1/procedures/{procedure_id}/{version}",
             "/v1/proofs/{envelope_id}",
+            "/v1/identity/{nothing_id}/profile",
         }
         self.assertTrue(expected.issubset(paths))
 
@@ -62,6 +63,14 @@ class OpenApiContractTests(unittest.TestCase):
         self.assertEqual(
             operation["responses"]["200"]["content"]["application/json"]["schema"]["$ref"],
             "#/components/schemas/ProofResponse",
+        )
+
+    def test_portable_profile_contract(self) -> None:
+        operation = self.spec["paths"]["/v1/identity/{nothing_id}/profile"]["get"]
+        self.assertEqual(operation["security"], [])
+        self.assertEqual(
+            operation["responses"]["200"]["content"]["application/json"]["schema"]["$ref"],
+            "#/components/schemas/PortableVerificationProfileResponse",
         )
 
     def test_identity_operation_has_cache_and_error_contract(self) -> None:
