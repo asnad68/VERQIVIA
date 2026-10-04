@@ -66,7 +66,11 @@
           <strong>Portable verification profile</strong>
           <p class="note">The same identity can be consumed directly by software and AI agents without reading this page.</p>
         </div>
-        <a id="profile-link" class="button secondary" href="./data/portable-profile-demo.json" target="_blank" rel="noreferrer">Open machine-readable profile →</a>
+        <div class="machine-actions">
+          <a id="profile-link" class="button secondary" href="./data/portable-profile-demo.json" target="_blank" rel="noreferrer">Open machine-readable profile →</a>
+          <button id="copy-link" class="button secondary" type="button">Copy verification link</button>
+        </div>
+        <div id="copy-state" class="note" role="status" aria-live="polite" hidden></div>
       </div>
 
       <section class="proof-panel panel" aria-labelledby="proof-heading">
@@ -110,6 +114,6 @@
   </footer>
 
   <script src="./config.js"></script>
-  <script src="./assets/app.js?v=20261004-5" defer></script>
+  <script src="./assets/app.js?v=20261004-6" defer></script>
 </body>
 </html>
