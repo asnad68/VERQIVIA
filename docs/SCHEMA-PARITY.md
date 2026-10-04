@@ -1,8 +1,8 @@
-# NOTHING Schema Parity Contract — v0.1
+# VERQIVIA Schema Parity Contract — v0.1
 
 ## Purpose
 
-NOTHING has two structural validation layers:
+VERQIVIA has two structural validation layers:
 
 1. JSON Schema for interoperable machine validation.
 2. A dependency-free Python validator for local and application-side checks.
@@ -54,4 +54,4 @@ A future change that intentionally changes the structure of a v0.1 record must n
 
 ## Rationale
 
-JSON Schema Draft 2020-12 is the current published JSON Schema specification. NOTHING uses that dialect so independent software can validate the same machine-readable contract. The project deliberately keeps semantic verification separate from structural validation.
+JSON Schema Draft 2020-12 is the current published JSON Schema specification. VERQIVIA uses that dialect so independent software can validate the same machine-readable contract. The project deliberately keeps semantic verification separate from structural validation.
