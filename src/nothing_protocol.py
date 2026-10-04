@@ -1,4 +1,4 @@
-"""Relationship and procedure semantics for the NOTHING v0.1 protocol.
+"""Relationship and procedure semantics for the VERQIVIA v0.1 protocol.
 
 This module intentionally separates:
 1. structural validation of individual records, and
@@ -40,7 +40,7 @@ METHOD_CLASSES = {
 
 
 class RelationshipError(ValueError):
-    """Raised when a NOTHING protocol bundle is semantically inconsistent."""
+    """Raised when a VERQIVIA protocol bundle is semantically inconsistent."""
 
 
 def _require(condition: bool, message: str) -> None:
@@ -55,7 +55,7 @@ def _reject_extra_keys(record: Mapping[str, Any], allowed: set[str], field: str)
 
 def _parse_datetime(value: str, field: str) -> datetime:
     _require(isinstance(value, str) and bool(value.strip()), f"{field} must be a non-empty string")
-    _require(DATETIME_RE.fullmatch(value) is not None, f"{field} must match the NOTHING date-time profile")
+    _require(DATETIME_RE.fullmatch(value) is not None, f"{field} must match the VERQIVIA date-time profile")
     normalized = value[:-1] + "+00:00" if value.endswith(("Z", "z")) else value
     try:
         parsed = datetime.fromisoformat(normalized)
