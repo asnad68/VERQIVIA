@@ -335,7 +335,13 @@
   }
 
   function renderProof(result) {
-    const state = result.state || "UNAVAILABLE";
+    const state =
+      result?.state ||
+      (result?.valid === true
+        ? "VALID"
+        : result?.valid === false
+          ? "INVALID"
+          : "UNAVAILABLE");
     const status = $("#proof-status");
     status.textContent = state;
     status.className =
@@ -346,12 +352,19 @@
           ? "status-bad"
           : "status-neutral");
 
+    const checks = result?.checks
+      ? Object.entries(result.checks)
+          .map(([key, value]) => key + "=" + (value ? "pass" : "fail"))
+          .join(", ")
+      : "—";
+
     const details = $("#proof-details");
     const rows = [
-      ["Resource hash", result.calculatedHash || "—"],
-      ["Issuer", result.issuerId || "—"],
-      ["Key", result.keyId || "—"],
-      ["Result", result.reason || "—"]
+      ["Resource hash", result?.calculatedHash || result?.resource_hash || "—"],
+      ["Issuer", result?.issuerId || result?.issuer_id || "—"],
+      ["Key", result?.keyId || result?.key_id || "—"],
+      ["Checks", checks],
+      ["Result", result?.reason || "—"]
     ];
     details.innerHTML = rows
       .map(
