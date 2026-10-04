@@ -1,4 +1,4 @@
-"""Public paid-enrollment gateway for NOTHING.
+"""Public paid-enrollment gateway for VERQIVIA.
 
 The gateway is deployment-gated. It creates an invoice from an operator-defined
 price, asks the browser wallet to send a native EVM payment, verifies the mined
@@ -306,7 +306,7 @@ def _public_identity(
             if getattr(stored, "replayed", False):
                 return identity
             return identity
-    raise EnrollmentValidationError("could not allocate a unique Nothing ID")
+    raise EnrollmentValidationError("could not allocate a unique VERQIVIA ID")
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -315,7 +315,7 @@ class Handler(BaseHTTPRequestHandler):
     def setup(self) -> None:
         super().setup()
         self.connection.settimeout(HTTP_REQUEST_TIMEOUT_SECONDS)
-    server_version = "NOTHING-Enrollment/0.1"
+    server_version = "VERQIVIA-Enrollment/0.1"
 
     def _send(self, status: int, payload: dict[str, Any] | None) -> None:
         body = _json_bytes(payload) if payload is not None else b""
@@ -945,7 +945,7 @@ def build_server() -> ThreadingHTTPServer:
 
 if __name__ == "__main__":
     server = build_server()
-    print(f"NOTHING enrollment gateway listening on http://{HOST}:{PORT}")
+    print(f"VERQIVIA enrollment gateway listening on http://{HOST}:{PORT}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
