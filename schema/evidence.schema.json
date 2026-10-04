@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/asnad68/NOTHING/blob/main/schema/evidence.schema.json",
-  "title": "NOTHING Evidence Record",
-  "description": "Machine-readable evidence reference for a NOTHING verification process.",
+  "$id": "https://github.com/asnad68/VERQIVIA/blob/main/schema/evidence.schema.json",
+  "title": "VERQIVIA Evidence Record",
+  "description": "Machine-readable evidence reference for a VERQIVIA verification process.",
   "type": "object",
   "additionalProperties": false,
   "required": [
