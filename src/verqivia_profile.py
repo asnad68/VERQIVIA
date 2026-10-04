@@ -143,24 +143,29 @@ def build_portable_profile(
             resource_hash = _clean_optional_str(
                 proof.get("resource_hash"), "proof.resource_hash"
             )
+            _require(envelope_id is not None, "proof.envelope_id is required")
+            _require(resource_hash is not None, "proof.resource_hash is required")
             verification = proof.get("verification")
             _require(
                 isinstance(verification, Mapping),
                 "proof.verification must be an object",
             )
+            proof_state = _clean_optional_str(
+                verification.get("state"), "proof.verification.state"
+            )
+            proof_url = _clean_optional_str(proof.get("url"), "proof.url")
+            _require(proof_state in {"VALID", "INVALID", "UNAVAILABLE"},
+                     "proof.verification.state must be VALID, INVALID or UNAVAILABLE")
+            _require(proof_url is not None, "proof.url is required")
             normalized_proofs.append(
                 {
                     "envelope_id": envelope_id,
                     "resource_hash": resource_hash,
                     "verification": {
                         "valid": bool(verification.get("valid")),
-                        "state": _clean_optional_str(
-                            verification.get("state"), "proof.verification.state"
-                        ),
+                        "state": proof_state,
                     },
-                    "url": _clean_optional_str(
-                        proof.get("url"), "proof.url"
-                    ),
+                    "url": proof_url,
                 }
             )
         profile["proofs"] = normalized_proofs
