@@ -3,9 +3,8 @@
   "profile_version": "0.2-draft",
   "verqivia_id": "NTH-000001",
   "subject": {
-    "name": "Example Corporation",
-    "type": "business",
-    "website": "https://example.com"
+    "name": "VERQIVIA Experimental Identity",
+    "type": "business"
   },
   "status": "ACTIVE",
   "identifiers": [],
@@ -13,10 +12,10 @@
   "claims": [
     {
       "claim_id": "CLM-000001",
-      "statement": "This is a synthetic demonstration of a portable VERQIVIA business identity profile.",
+      "statement": "This record is an experimental demonstration of the VERQIVIA identity model.",
       "status": "SOURCE-VERIFIED",
       "current_event_id": "VER-000001",
-      "scope": "Synthetic demonstration only; this record does not verify a real organization.",
+      "scope": "The example claim is supported by the referenced example source for this synthetic fixture only.",
       "evidence_ids": [
         "EVD-000001"
       ]
