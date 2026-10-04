@@ -73,7 +73,7 @@ This endpoint is intended for:
 
 The profile is designed to be consumed without screen scraping. It contains the VERQIVIA identifier, subject, selected identifiers/domains, claim-level verification status, relationships, verification counts, discovery links and interoperability hints.
 
-The profile does not grant trademark rights, certify a company generally, or provide a universal trust score.
+The profile may include cryptographic proof references with their current verification state and proof endpoint. The profile does not grant trademark rights, certify a company generally, or provide a universal trust score.
 
 ### GET /v1/identity/{nothing_id}
 
