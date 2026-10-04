@@ -49,7 +49,7 @@ GET /v1/identity/{nothing_id}/profile
 Accept: application/json
 ~~~
 
-The profile is intentionally additive to the v0.1 protocol and can be consumed without rendering HTML.
+The profile is intentionally additive to the v0.1 protocol and can be consumed without rendering HTML. A response example is published at `api/examples/get-profile-200.json`.
 
 ## Human verification
 
