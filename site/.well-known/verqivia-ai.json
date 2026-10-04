@@ -1,0 +1,27 @@
+{
+  "document_type": "VERQIVIA-AI-DISCOVERY",
+  "document_version": "0.1",
+  "purpose": "Machine-readable discovery hints for software and AI agents.",
+  "profile": {
+    "name": "VERQIVIA-PORTABLE-VERIFICATION-PROFILE",
+    "version": "0.2-draft"
+  },
+  "endpoints": {
+    "identity": "/v1/identity/{nothing_id}",
+    "portable_profile": "/v1/identity/{nothing_id}/profile",
+    "verification_events": "/v1/identity/{nothing_id}/verification-events",
+    "evidence": "/v1/evidence/{evidence_id}",
+    "proof": "/v1/proofs/{envelope_id}"
+  },
+  "discovery": {
+    "document": "/.well-known/verqivia.json"
+  },
+  "machine_rules": [
+    "Inspect claim-level status rather than a universal trust score.",
+    "Respect verification scope and lifecycle.",
+    "Check revocation and supersession before relying on a current claim.",
+    "Treat evidence as provenance; do not assume a referenced source is automatically truthful.",
+    "Do not infer trademark ownership or legal certification from a VERQIVIA profile."
+  ],
+  "synthetic_demo": true
+}
