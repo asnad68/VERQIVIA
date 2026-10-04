@@ -40,7 +40,18 @@
       "bimi": "not_present",
       "gs1_digital_link": "adapter_planned"
     },
-    "disclaimer": "Synthetic example. VERQIVIA does not grant trademark rights or legal certification."
+    "disclaimer": "Synthetic example. VERQIVIA does not grant trademark rights or legal certification.",
+    "proofs": [
+      {
+        "envelope_id": "CRD-000001",
+        "resource_hash": "d7b88995713b00d3125ff4e8de39008b2f6552646792442c9575b542d7d08bb3",
+        "verification": {
+          "valid": true,
+          "state": "VALID"
+        },
+        "url": "/v1/proofs/CRD-000001"
+      }
+    ]
   },
   "meta": {
     "api_version": "1",
