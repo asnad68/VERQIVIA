@@ -43,6 +43,9 @@ It does not mean:
 
 ## Branding / IP gate
 
+See `docs/NAME-CLEARANCE.md` for the official-search and professional-review checklist.
+
+
 Before filing or spending materially on the **VERQIVIA** brand, the project must complete a professional trademark/name-clearance review in the intended jurisdictions and for the actual goods/services. A current public-source check The current project name is VERQIVIA. A professional clearance is still required before filing or materially expanding commercial use.
 
 Project rule: do not describe VERQIVIA as a registered trademark until an appropriate clearance and filing strategy has been completed.
