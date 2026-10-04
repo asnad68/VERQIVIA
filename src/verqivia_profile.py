@@ -75,6 +75,7 @@ def build_portable_profile(
         }
 
     claims_report = resolution["claims"]
+    events_by_id = {event["event_id"]: event for event in events}
     profile_claims: list[dict[str, Any]] = []
     for claim in identity["claims"]:
         report = claims_report.get(claim["claim_id"], {})
@@ -85,7 +86,17 @@ def build_portable_profile(
             "status": current_status or claim["status"],
         }
         if report.get("current_event_id"):
-            item["current_event_id"] = report["current_event_id"]
+            current_event_id = report["current_event_id"]
+            item["current_event_id"] = current_event_id
+            current_event = events_by_id.get(current_event_id)
+            if current_event:
+                result = current_event.get("result", {})
+                if result.get("scope"):
+                    item["scope"] = result["scope"]
+                if result.get("valid_from"):
+                    item["valid_from"] = result["valid_from"]
+                if result.get("valid_until"):
+                    item["valid_until"] = result["valid_until"]
         if report.get("evidence_ids"):
             item["evidence_ids"] = report["evidence_ids"]
         profile_claims.append(item)
