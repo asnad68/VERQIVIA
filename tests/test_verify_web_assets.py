@@ -81,6 +81,18 @@ class VerifyWebAssetTests(unittest.TestCase):
         ):
             self.assertTrue((ROOT / relative_path).is_file(), relative_path)
 
+    def test_portable_profile_matches_demo_identity(self):
+        profile = read_json(ROOT / "site/data/portable-profile-demo.json")
+        identity = next(
+            item for item in self.bundle["identities"]
+            if item["nothing_id"] == profile["verqivia_id"]
+        )
+        self.assertEqual(profile["subject"], identity["subject"])
+        self.assertEqual(profile["claims"][0]["claim_id"], identity["claims"][0]["claim_id"])
+        self.assertEqual(profile["claims"][0]["statement"], identity["claims"][0]["statement"])
+        self.assertEqual(profile["claims"][0]["status"], identity["claims"][0]["status"])
+        self.assertEqual(profile["claims"][0]["current_event_id"], "VER-000001")
+
     def test_ai_discovery_points_to_machine_endpoint(self):
         discovery = read_json(ROOT / "site/.well-known/verqivia-ai.json")
         self.assertEqual(discovery["document_type"], "VERQIVIA-AI-DISCOVERY")
