@@ -1,10 +1,10 @@
 {
   "openapi": "3.1.2",
   "info": {
-    "title": "NOTHING Verification API",
+    "title": "VERQIVIA Verification API",
     "version": "1.0.0",
-    "summary": "NOTHING verification, authenticated ingestion and billing API",
-    "description": "Deployment-neutral API contract for resolving a NOTHING identity into claims, evidence references, verification events and versioned procedures. The API does not turn structural validity into a universal trust score. Production authenticated writes use JWT access tokens and scope authorization. Authenticated billing provides a customer-scoped price catalog, invoice creation and entitlement reads; settlement itself is performed by the receive-only payment observation pipeline and PostgreSQL billing core."
+    "summary": "VERQIVIA verification, authenticated ingestion and billing API",
+    "description": "Deployment-neutral API contract for resolving a VERQIVIA identity into claims, evidence references, verification events and versioned procedures. The API does not turn structural validity into a universal trust score. Production authenticated writes use JWT access tokens and scope authorization. Authenticated billing provides a customer-scoped price catalog, invoice creation and entitlement reads; settlement itself is performed by the receive-only payment observation pipeline and PostgreSQL billing core."
   },
   "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
   "paths": {
@@ -54,7 +54,7 @@
             }
           },
           "400": {
-            "description": "Invalid Nothing ID.",
+            "description": "Invalid VERQIVIA ID.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -64,7 +64,7 @@
             }
           },
           "404": {
-            "description": "Nothing ID is syntactically valid but not found.",
+            "description": "VERQIVIA ID is syntactically valid but not found.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -940,7 +940,7 @@
             }
           },
           "400": {
-            "description": "Invalid NOTHING identifier.",
+            "description": "Invalid VERQIVIA identifier.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1054,7 +1054,7 @@
         "name": "nothing_id",
         "in": "path",
         "required": true,
-        "description": "Project-level NOTHING identity identifier.",
+        "description": "Project-level VERQIVIA identity identifier.",
         "schema": {
           "type": "string",
           "pattern": "^NTH-[0-9]{6}$"
@@ -1134,7 +1134,7 @@
         }
       },
       "ProtocolVersion": {
-        "description": "NOTHING protocol version used to resolve the representation.",
+        "description": "VERQIVIA protocol version used to resolve the representation.",
         "schema": {
           "type": "string",
           "const": "0.1"
