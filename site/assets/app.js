@@ -140,9 +140,10 @@
       procedures: procedurePayloads
         .map((payload) => payload?.data)
         .filter(Boolean),
-      proof,
-      issuerRegistry,
-      metadata: identityPayload.meta || {}
+      proof: proofView?.envelope || null,
+      proofVerification: proofView?.verification || null,
+      metadata: identityPayload.meta || {},
+      liveError: null
     };
   }
 
