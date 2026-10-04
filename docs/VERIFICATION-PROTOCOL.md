@@ -1,4 +1,4 @@
-# NOTHING Verification Protocol — Draft v0.1
+# VERQIVIA Verification Protocol — Draft v0.1
 
 ## Objective
 
@@ -8,7 +8,7 @@ Define a repeatable procedure for turning a claim into a verification result wit
 
 A verification event identifies:
 
-- NOTHING ID
+- VERQIVIA ID
 - Claim ID
 - verifier or verification service
 - exact procedure ID and procedure version
