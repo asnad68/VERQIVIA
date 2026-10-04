@@ -68,7 +68,7 @@ The first automated organization-control method is DNS TXT:
 
 ```text
 _nothing-challenge.example.com
-TXT "NOTHING-DOMAIN-VERIFICATION=<signed-expiring-challenge>"
+TXT "NOTHING-DOMAIN-VERIFICATION=<signed-expiring-challenge>"  # legacy v0.1 protocol label retained for compatibility
 ```
 
 The challenge is signed by a server-side secret, expires quickly and is verified before DNS is queried. The secret is never sent to the browser as a separate credential.
