@@ -13,7 +13,7 @@
         "tags": [
           "Identity"
         ],
-        "summary": "Resolve a NOTHING identity",
+        "summary": "Resolve a VERQIVIA identity",
         "operationId": "getIdentity",
         "parameters": [
           {
