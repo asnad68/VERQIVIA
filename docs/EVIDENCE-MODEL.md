@@ -1,4 +1,4 @@
-# NOTHING Evidence Model — Draft v0.1
+# VERQIVIA Evidence Model — Draft v0.1
 
 ## Purpose
 
@@ -34,7 +34,7 @@ A digest can show that the bytes being compared are the same; it does not prove 
 
 ## Evidence quality
 
-NOTHING intentionally does not reduce evidence to a universal score. Evidence suitability depends on the claim being tested.
+VERQIVIA intentionally does not reduce evidence to a universal score. Evidence suitability depends on the claim being tested.
 
 For example, a domain-control check may be relevant to control of a website, but it does not by itself establish ownership of a company, financial strength, licensing status, or reputation.
 
