@@ -113,3 +113,5 @@
 - [ ] Conduct legal/compliance review before launch
 
 Roadmap status: experimental and subject to change.
+
+Portable verification exchange profile: implemented as an additive draft layer; production integration remains a deployment gate.
