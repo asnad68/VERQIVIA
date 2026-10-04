@@ -1,4 +1,4 @@
-# NOTHING Threat Model
+# VERQIVIA Threat Model
 
 ## Purpose
 
