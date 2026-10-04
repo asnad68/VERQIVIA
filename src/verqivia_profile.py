@@ -164,16 +164,32 @@ def build_portable_profile(
             proof_state = _clean_optional_str(
                 verification.get("state"), "proof.verification.state"
             )
+            proof_valid = verification.get("valid")
             proof_url = _clean_optional_str(proof.get("url"), "proof.url")
-            _require(proof_state in {"VALID", "INVALID", "UNAVAILABLE"},
-                     "proof.verification.state must be VALID, INVALID or UNAVAILABLE")
+            _require(
+                proof_state in {"VALID", "INVALID", "UNAVAILABLE"},
+                "proof.verification.state must be VALID, INVALID or UNAVAILABLE",
+            )
+            _require(
+                isinstance(proof_valid, bool),
+                "proof.verification.valid must be a boolean",
+            )
+            _require(
+                proof_valid == (proof_state == "VALID"),
+                "proof.verification.valid must agree with state",
+            )
             _require(proof_url is not None, "proof.url is required")
+            _require(
+                len(resource_hash) == 64
+                and all(ch in "0123456789abcdef" for ch in resource_hash),
+                "proof.resource_hash must be 64 lowercase hexadecimal characters",
+            )
             normalized_proofs.append(
                 {
                     "envelope_id": envelope_id,
                     "resource_hash": resource_hash,
                     "verification": {
-                        "valid": bool(verification.get("valid")),
+                        "valid": proof_valid,
                         "state": proof_state,
                     },
                     "url": proof_url,
