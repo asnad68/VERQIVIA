@@ -1,0 +1,10 @@
+{
+  "document_type": "VERQIVIA-DISCOVERY",
+  "document_version": "0.1",
+  "verqivia_id": "NTH-000001",
+  "verification_profile": "VERQIVIA-PORTABLE-VERIFICATION-PROFILE",
+  "verify_url": "https://asnad68.github.io/VERQIVIA/verify.html?id=NTH-000001",
+  "api_url": null,
+  "notice": "Synthetic public demo pointer. Domain publication is a discovery signal only and is not by itself proof of legal ownership or authorization.",
+  "synthetic": true
+}
