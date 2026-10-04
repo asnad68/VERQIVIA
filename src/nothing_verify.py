@@ -1,4 +1,4 @@
-"""Core deterministic validation for the NOTHING v0.1 data models.
+"""Core deterministic validation for the VERQIVIA v0.1 data models.
 
 This module checks structural contracts only. Semantic relationships between
 records are handled by src.nothing_protocol.
@@ -50,7 +50,7 @@ VERIFIER_TYPES = {"automated", "human", "hybrid"}
 
 
 class ValidationError(ValueError):
-    """Raised when a record violates a NOTHING structural contract."""
+    """Raised when a record violates a VERQIVIA structural contract."""
 
 
 def _require(condition: bool, message: str) -> None:
@@ -82,7 +82,7 @@ def _optional_datetime(value: Any, field: str) -> None:
     if value is not None:
         _require(isinstance(value, str), f"{field} must be an ISO-8601 string")
         try:
-            _require(DATETIME_RE.fullmatch(value) is not None, f"{field} must match the NOTHING date-time profile")
+            _require(DATETIME_RE.fullmatch(value) is not None, f"{field} must match the VERQIVIA date-time profile")
             normalized = value[:-1] + "+00:00" if value.endswith(("Z", "z")) else value
             parsed = datetime.fromisoformat(normalized)
             _require(parsed.tzinfo is not None and parsed.utcoffset() is not None, f"{field} must include a timezone offset")
@@ -100,7 +100,7 @@ def _required_datetime(value: Any, field: str) -> None:
 def _optional_uri(value: Any, field: str) -> None:
     if value is not None:
         _required_string(value, field)
-        _require(URI_RE.fullmatch(value) is not None, f"{field} must match the NOTHING URI profile")
+        _require(URI_RE.fullmatch(value) is not None, f"{field} must match the VERQIVIA URI profile")
 
 
 def _validate_source(source: Any) -> None:
@@ -395,7 +395,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Validate a NOTHING identity JSON record."
+        description="Validate a VERQIVIA identity JSON record."
     )
     parser.add_argument("file")
     args = parser.parse_args()
