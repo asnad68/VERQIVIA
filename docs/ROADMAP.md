@@ -70,11 +70,12 @@
 - [x] Require bearer authentication and idempotency for writes
 - [x] Implement atomic Identity + Evidence + Verification Event ingestion
 - [x] Persist idempotency records with immutable audit linkage
-- [ ] Production managed authentication / authorization boundary
+- [x] Define production managed authentication / authorization boundary
+- [ ] Register and configure production managed authentication provider
 
 
 ## Phase 5 — Pilot
-- [ ] Create a controlled pilot dataset
+- [x] Create a controlled synthetic pilot dataset
 - [ ] Test business identity onboarding
 - [ ] Test authorization relationships
 - [ ] Test evidence collection workflows
@@ -83,11 +84,11 @@
 - [ ] Test revocation and supersession workflows
 
 ## Phase 6 — Network
-- [ ] Define interoperability boundaries
-- [ ] Research W3C Verifiable Credentials
-- [ ] Research OpenID for Verifiable Credentials
-- [ ] Research LEI/GLEIF relationships
-- [ ] Research BIMI and domain signals
+- [x] Define interoperability boundaries
+- [x] Research W3C Verifiable Credentials
+- [x] Research OpenID for Verifiable Credentials
+- [x] Research LEI/GLEIF relationships
+- [x] Research BIMI and domain signals
 
 ## Phase 7 — Commercial Infrastructure
 - [x] Define service tiers
