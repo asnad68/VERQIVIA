@@ -67,6 +67,7 @@ def main() -> int:
     registry = read_json(ROOT / "procedures/registry.json")
     proof = read_json(ROOT / "examples/CRD-000001.json")
     issuer_registry = read_json(ROOT / "trust/issuer-registry.json")
+    pilot = read_json(ROOT / "pilot/controlled-dataset.json")
 
     validate_identity(identity)
     validate_evidence(evidence)
@@ -74,6 +75,21 @@ def main() -> int:
     validate_procedure_registry(registry)
 
     resolve_claim_relationships(identity, [evidence], [event], registry)
+
+    if pilot.get("synthetic") is not True:
+        raise AssertionError("pilot/controlled-dataset.json must be explicitly synthetic")
+    for pilot_identity in pilot.get("identities", []):
+        validate_identity(pilot_identity)
+    for pilot_evidence in pilot.get("evidence", []):
+        validate_evidence(pilot_evidence)
+    for pilot_event in pilot.get("verification_events", []):
+        validate_verification_event(pilot_event)
+    resolve_claim_relationships(
+        pilot["identities"][0],
+        pilot.get("evidence", []),
+        pilot.get("verification_events", []),
+        registry,
+    )
 
     proof_result = verify_envelope(
         proof,
@@ -102,8 +118,8 @@ def main() -> int:
         ROOT / "trust/issuer-registry.json",
     )
 
-    print("NOTHING PREFLIGHT: OK")
-    print("Validated: schemas, protocol fixtures, relationship graph, cryptographic proof, public demo parity")
+    print("VERQIVIA PREFLIGHT: OK")
+    print("Validated: schemas, protocol fixtures, pilot lifecycle, relationship graph, cryptographic proof, public demo parity")
     return 0
 
 
@@ -111,5 +127,5 @@ if __name__ == "__main__":
     try:
         raise SystemExit(main())
     except (AssertionError, ProofError, ValidationError, json.JSONDecodeError, OSError) as exc:
-        print(f"NOTHING PREFLIGHT: FAILED — {exc}")
+        print(f"VERQIVIA PREFLIGHT: FAILED — {exc}")
         raise SystemExit(1)
