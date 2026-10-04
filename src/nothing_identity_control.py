@@ -1,4 +1,4 @@
-"""Identity ownership and registration authorization policy for NOTHING.
+"""Identity ownership and registration authorization policy for VERQIVIA.
 
 Authentication answers: "Who is operating this browser?"
 Authorization answers: "Does this principal have sufficient control to make
@@ -215,7 +215,7 @@ def build_siwe_message(
     chain_id: int,
     nonce: str,
     issued_at: str,
-    statement: str = "Sign in to NOTHING. This proves control of the wallet only.",
+    statement: str = "Sign in to VERQIVIA. This proves control of the wallet only.",
     expiration_time: str | None = None,
 ) -> str:
     domain = normalize_domain(domain)
@@ -310,7 +310,7 @@ def verify_siwe_signature(
     domain = normalize_domain(expected_domain)
     expected_uri = str(expected_uri).strip()
     if fields["domain"] != domain:
-        raise IdentityControlError("SIWE domain does not match the expected NOTHING origin")
+        raise IdentityControlError("SIWE domain does not match the expected VERQIVIA origin")
     if fields["URI"] != expected_uri:
         raise IdentityControlError("SIWE URI does not match the expected origin")
     if int(fields["_chain_id"]) != expected_chain_id:
