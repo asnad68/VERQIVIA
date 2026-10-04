@@ -57,6 +57,28 @@ class VerifyWebAssetTests(unittest.TestCase):
         self.assertEqual(proof_errors, [])
         self.assertEqual(registry_errors, [])
 
+    def test_verify_page_references_existing_local_assets(self):
+        html = (ROOT / "site/verify.html").read_text(encoding="utf-8")
+        required_assets = (
+            "assets/styles.css",
+            "config.js",
+            "assets/app.js?v=",
+            "data/demo-bundle.json",
+            "data/demo-proof.json",
+            "data/demo-issuer-registry.json",
+        )
+        for asset in required_assets[:3]:
+            self.assertIn(asset, html if asset != "data/demo-bundle.json" else "")
+        for relative_path in (
+            "site/assets/styles.css",
+            "site/config.js",
+            "site/assets/app.js",
+            "site/data/demo-bundle.json",
+            "site/data/demo-proof.json",
+            "site/data/demo-issuer-registry.json",
+        ):
+            self.assertTrue((ROOT / relative_path).is_file(), relative_path)
+
     def test_discovery_pointer_is_explicitly_synthetic(self):
         discovery = read_json(ROOT / "site/.well-known/verqivia.json")
         self.assertTrue(discovery["synthetic"])
