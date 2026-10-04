@@ -15,7 +15,8 @@ This is an integration guide, not a claim that every AI system currently support
 4. For each relevant claim, inspect status, scope and current event
 5. Follow evidence and procedure references when the decision requires more detail
 6. Prefer the latest non-superseded verification event
-7. Never convert one claim result into a universal trust score
+7. When integrity matters, follow the profile proof reference and verify the exact resource hash/signature
+8. Never convert one claim result into a universal trust score
 ~~~
 
 ## AI safety rules
@@ -49,7 +50,7 @@ GET /v1/identity/{nothing_id}/profile
 Accept: application/json
 ~~~
 
-The profile is intentionally additive to the v0.1 protocol and can be consumed without rendering HTML. A response example is published at `api/examples/get-profile-200.json`.
+The profile is intentionally additive to the v0.1 protocol and can be consumed without rendering HTML. Where available, it also carries cryptographic proof references with the verification state and a proof endpoint. A response example is published at `api/examples/get-profile-200.json`.
 
 ## Human verification
 
