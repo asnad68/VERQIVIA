@@ -1,4 +1,4 @@
-# NOTHING Verification Procedure Registry — Draft v0.1
+# VERQIVIA Verification Procedure Registry — Draft v0.1
 
 ## Purpose
 
