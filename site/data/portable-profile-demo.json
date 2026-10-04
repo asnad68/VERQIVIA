@@ -1,0 +1,49 @@
+{
+  "profile_type": "VERQIVIA-PORTABLE-VERIFICATION-PROFILE",
+  "profile_version": "0.2-draft",
+  "verqivia_id": "NTH-000001",
+  "subject": {
+    "name": "Example Corporation",
+    "type": "business",
+    "website": "https://example.com"
+  },
+  "status": "ACTIVE",
+  "identifiers": [],
+  "domains": [
+    {
+      "domain": "example.com",
+      "status": "SOURCE-VERIFIED",
+      "verification_event_id": "VER-000001"
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "CLM-000001",
+      "statement": "This is a synthetic demonstration of a portable VERQIVIA business identity profile.",
+      "status": "SOURCE-VERIFIED",
+      "current_event_id": "VER-000001",
+      "scope": "Synthetic demonstration only; this record does not verify a real organization.",
+      "evidence_ids": [
+        "EVD-000001"
+      ]
+    }
+  ],
+  "relationships": [],
+  "verification": {
+    "resolution_version": "0.1",
+    "verification_event_count": 1,
+    "evidence_count": 1
+  },
+  "links": {
+    "verify": "https://asnad68.github.io/VERQIVIA/verify.html?id=NTH-000001",
+    "discovery": "https://asnad68.github.io/VERQIVIA/.well-known/verqivia.json"
+  },
+  "interop": {
+    "w3c_vc": "adapter_planned",
+    "openid4vci": "adapter_planned",
+    "gleif_lei": "not_present",
+    "bimi": "not_present",
+    "gs1_digital_link": "adapter_planned"
+  },
+  "disclaimer": "Synthetic example. VERQIVIA does not grant trademark rights or legal certification."
+}
