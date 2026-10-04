@@ -1,4 +1,4 @@
-name: Package NOTHING browser extension
+name: Package VERQIVIA browser extension
 
 on:
   workflow_dispatch:
@@ -15,5 +15,5 @@ jobs:
       - name: Attach packages to workflow
         uses: actions/upload-artifact@v4
         with:
-          name: nothing-browser-extension-release
+          name: verqivia-browser-extension-release
           path: extension/dist/*.zip
