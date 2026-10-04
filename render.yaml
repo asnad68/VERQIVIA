@@ -42,6 +42,8 @@ services:
         generateValue: true
       - key: NOTHING_PUBLIC_SITE_ORIGIN
         value: https://asnad68.github.io/VERQIVIA
+      - key: NOTHING_PUBLIC_API_ORIGIN
+        sync: false
       - key: NOTHING_TRUST_PROXY_HEADERS
         value: false
 
