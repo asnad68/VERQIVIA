@@ -1,4 +1,4 @@
-# NOTHING Relationship Resolution — Draft v0.1
+# VERQIVIA Relationship Resolution — Draft v0.1
 
 ## Purpose
 
