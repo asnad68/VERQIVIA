@@ -98,7 +98,7 @@ class VerifyWebAssetTests(unittest.TestCase):
             html = html_path.read_text(encoding="utf-8")
             self.assertNotRegex(
                 html,
-                r"\\bstyle\\s*=",
+                r"\bstyle\s*=",
                 f"inline style attribute found in {html_path.name}",
             )
 
