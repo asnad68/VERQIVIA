@@ -33,8 +33,8 @@ Machine-readable discovery/profile
 Use an authorized Render workspace and apply the root `render.yaml`. The blueprint defines:
 
 - `verqivia-api` — Docker web service;
-- `verqivia-site` — static site;
-- `verqivia-postgres` — PostgreSQL target.
+- `verqivia-postgres` — PostgreSQL target;
+- GitHub Pages remains the single canonical public website.
 
 Do not expose the database publicly. Keep the service topology single-tenant for the current release.
 
