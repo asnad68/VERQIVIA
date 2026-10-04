@@ -102,6 +102,13 @@ class VerifyWebAssetTests(unittest.TestCase):
                 f"inline style attribute found in {html_path.name}",
             )
 
+    def test_verify_page_has_shareable_link_control(self):
+        html = (ROOT / "site/verify.html").read_text(encoding="utf-8")
+        app_js = (ROOT / "site/assets/app.js").read_text(encoding="utf-8")
+        self.assertIn('id="copy-link"', html)
+        self.assertIn('id="copy-state"', html)
+        self.assertIn('navigator.clipboard', app_js)
+
     def test_local_html_links_resolve(self):
         import re
         from urllib.parse import urlparse
