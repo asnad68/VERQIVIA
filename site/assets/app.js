@@ -359,7 +359,15 @@
           : "Ed25519 signature verification failed.",
         calculatedHash,
         issuerId,
-        keyId
+        keyId,
+        checks: {
+          resource_matches: true,
+          resource_hash_matches: calculatedHash === proof.resource_hash,
+          issuer_registered: true,
+          key_active: true,
+          key_lifecycle_valid: true,
+          signature_valid: validSignature
+        }
       };
     } catch (error) {
       return {
