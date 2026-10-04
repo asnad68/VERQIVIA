@@ -3,7 +3,7 @@
 
   const DEMO_DATA_URL = "./data/demo-bundle.json";
   const DEMO_PROOF_URL = "./data/demo-proof.json";
-  const DEMO_ISSUER_REGISTRY_URL = "./data/demo-issuer-registry.json?v=1";
+  const DEMO_ISSUER_REGISTRY_URLS = ["./data/demo-issuer-registry.json?v=2", "./.well-known/verqivia-keys.json?v=2"];
   const API_BASE = String(window.NOTHING_API_BASE || "").replace(/\/$/, "");
   const ID_PATTERN = /^NTH-[0-9]{6}$/;
 
@@ -127,20 +127,7 @@
       )
     ]);
 
-    const proofViews = identityPayload.data.cryptographic_proofs || [];
-    let proof = null;
-    let issuerRegistry = null;
-    if (proofViews.length > 0 && proofViews[0]?.envelope?.envelope_id) {
-      const proofId = proofViews[0].envelope.envelope_id;
-      const [proofPayload, registryPayload] = await Promise.all([
-        fetchJson(`/v1/proofs/${encodeURIComponent(proofId)}`).catch(() => null),
-        fetch(DEMO_ISSUER_REGISTRY_URL, { cache: "no-store" }).then(
-          async (response) => (response.ok ? response.json() : null)
-        ).catch(() => null)
-      ]);
-      proof = proofPayload?.data?.envelope || proofViews[0]?.envelope || null;
-      issuerRegistry = registryPayload;
-    }
+    const proofView = (identityPayload.data.cryptographic_proofs || [])[0] || null;
 
     return {
       mode: "live",
@@ -159,24 +146,56 @@
     };
   }
 
+  async function fetchFirstJson(urls) {
+    const failures = [];
+    for (const url of urls) {
+      try {
+        const response = await fetch(url, { cache: "no-store" });
+        if (response.ok) return await response.json();
+        failures.push(url + ": HTTP " + response.status);
+      } catch (error) {
+        failures.push(url + ": " + (error.message || "request failed"));
+      }
+    }
+    const error = new Error(
+      "Unable to load demo issuer registry. " + failures.join(" | ")
+    );
+    error.code = "REGISTRY_UNAVAILABLE";
+    throw error;
+  }
+
   async function loadDemo(nothingId) {
     const response = await fetch(DEMO_DATA_URL, { cache: "no-store" });
-    if (!response.ok) throw new Error("Unable to load demo dataset.");
+    if (!response.ok) {
+      throw new Error("Unable to load demo dataset (HTTP " + response.status + ").");
+    }
     const bundle = await response.json();
-
-    const [proofResponse, registryResponse] = await Promise.all([
-      fetch(DEMO_PROOF_URL, { cache: "no-store" }),
-      fetch(DEMO_ISSUER_REGISTRY_URL, { cache: "no-store" })
-    ]);
-
-    if (!proofResponse.ok) throw new Error("Unable to load demo proof.");
-    if (!registryResponse.ok) throw new Error("Unable to load demo issuer registry.");
-
     const record = normalizeDemo(bundle, nothingId);
     if (!record) return null;
 
-    record.proof = await proofResponse.json();
-    record.issuerRegistry = await registryResponse.json();
+    const diagnostics = { proofLoaded: false, registryLoaded: false, warnings: [] };
+
+    try {
+      const proofResponse = await fetch(DEMO_PROOF_URL, { cache: "no-store" });
+      if (!proofResponse.ok) {
+        throw new Error("Unable to load demo proof (HTTP " + proofResponse.status + ").");
+      }
+      record.proof = await proofResponse.json();
+      diagnostics.proofLoaded = true;
+    } catch (error) {
+      record.proof = null;
+      diagnostics.warnings.push(error.message || "Demo proof could not be loaded.");
+    }
+
+    try {
+      record.issuerRegistry = await fetchFirstJson(DEMO_ISSUER_REGISTRY_URLS);
+      diagnostics.registryLoaded = true;
+    } catch (error) {
+      record.issuerRegistry = null;
+      diagnostics.warnings.push(error.message || "Demo issuer registry could not be loaded.");
+    }
+
+    record.diagnostics = diagnostics;
     return record;
   }
 
@@ -350,6 +369,7 @@
     $("#loading").hidden = !loading;
     $("#result").hidden = !result;
     $("#not-found").hidden = !notFound;
+    if (!notFound) $("#retry").hidden = true;
   }
 
   async function render(record) {
@@ -527,14 +547,31 @@
       2
     );
 
-    renderProof(
+    const proofResult =
       record.mode === "demo"
         ? await verifyDemoProof(record)
-        : {
+        : record.proofVerification || {
             state: "UNAVAILABLE",
-            reason: "The current API view does not publish a proof envelope yet."
-          }
-    );
+            reason: "The current API view does not publish a proof verification result."
+          };
+
+    renderProof(proofResult);
+
+    const sourceNote = $("#source-note");
+    if (record.liveError) {
+      sourceNote.hidden = false;
+      sourceNote.textContent =
+        "Live API was unavailable, so this page is showing the synthetic demo record instead. " +
+        record.liveError;
+    } else if (record.mode === "demo" && record.diagnostics?.warnings?.length) {
+      sourceNote.hidden = false;
+      sourceNote.textContent =
+        record.diagnostics.warnings.join(" ") +
+        " The identity record remains available; proof status is shown separately.";
+    } else {
+      sourceNote.hidden = true;
+      sourceNote.textContent = "";
+    }
 
     showState({ loading: false, result: true, notFound: false });
   }
@@ -548,9 +585,14 @@
     $("#search-id").value = nothingId;
 
     if (!ID_PATTERN.test(nothingId)) {
+      $("#not-found-title").textContent = "Invalid VERQIVIA ID.";
+      $("#not-found-detail").textContent = "Use an ID in the form NTH-XXXXXX.";
+      $("#retry").hidden = true;
       showState({ loading: false, result: false, notFound: true });
       return;
     }
+
+    $("#retry").hidden = false;
 
     showState({ loading: true, result: false, notFound: false });
 
@@ -560,27 +602,37 @@
           await render(await loadLive(nothingId));
           return;
         } catch (liveError) {
-          if (liveError.status && liveError.status !== 404) {
-            throw liveError;
+          const demo = await loadDemo(nothingId);
+          if (demo) {
+            demo.liveError = liveError && liveError.message
+              ? liveError.message
+              : "The live API request failed.";
+            await render(demo);
+            return;
           }
+          throw liveError;
         }
       }
 
       const demo = await loadDemo(nothingId);
       if (!demo) {
+        $("#not-found-title").textContent = "Record not found in the current demo.";
+        $("#not-found-detail").textContent =
+          "Only synthetic demo identities are currently published.";
         showState({ loading: false, result: false, notFound: true });
         return;
       }
       await render(demo);
     } catch (error) {
-      $("#not-found").hidden = false;
-      $("#not-found").innerHTML =
-        "<strong>Unable to load the verification record.</strong><p>" +
-        escapeHtml(error.message) +
-        "</p>";
+      $("#not-found-title").textContent = "Unable to load the verification record.";
+      $("#not-found-detail").textContent =
+        error.message || "An unexpected verification error occurred.";
+      $("#retry").hidden = false;
       showState({ loading: false, result: false, notFound: true });
     }
   }
+
+  $("#retry")?.addEventListener("click", () => load());
 
   $("#search-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
