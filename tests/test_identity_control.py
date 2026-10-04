@@ -47,7 +47,7 @@ class IdentityControlTests(unittest.TestCase):
 
     def test_domain_challenge_is_stable_when_supplied(self):
         challenge = build_domain_challenge("apple.com", challenge="fixed-test-token-12345678901234567890")
-        self.assertEqual(challenge.record_name, "_nothing-challenge.apple.com")
+        self.assertEqual(challenge.record_name, "_verqivia-challenge.apple.com")
         self.assertEqual(challenge.record_value, "NOTHING-DOMAIN-VERIFICATION=fixed-test-token-12345678901234567890")
         self.assertEqual(len(challenge.challenge_digest), 64)
 
@@ -129,14 +129,14 @@ class IdentityControlTests(unittest.TestCase):
 
     def test_siwe_message_binds_to_origin_and_nonce(self):
         message = build_siwe_message(
-            domain="nothing.example",
+            domain="verqivia.example",
             address="0x1111111111111111111111111111111111111111",
-            uri="https://nothing.example/",
+            uri="https://verqivia.example/",
             chain_id=1,
             nonce="ABCDEFGH1234",
             issued_at="2026-10-02T20:00:00Z",
         )
-        self.assertIn("nothing.example wants you to sign in", message)
+        self.assertIn("verqivia.example wants you to sign in", message)
         self.assertIn("Nonce: ABCDEFGH1234", message)
 
     def test_signed_domain_challenge_expires_and_rejects_tampering(self):
