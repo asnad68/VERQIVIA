@@ -1,17 +1,17 @@
 {
-  "envelope_id": "CRD-000001",
+  "envelope_id": "CRD-000002",
   "version": "0.1",
   "resource_type": "identity",
   "resource_id": "NTH-000001",
-  "resource_hash": "d7b88995713b00d3125ff4e8de39008b2f6552646792442c9575b542d7d08bb3",
+  "resource_hash": "4748a2e75473d64c6b56ee195f12e64cc558c31bf8d7ea40a99337d8bd2b1700",
   "issuer": {
-    "issuer_id": "NTH-DEMO-ISSUER",
-    "key_id": "demo-key-3"
+    "issuer_id": "VERQIVIA-DEMO-ISSUER",
+    "key_id": "verqivia-demo-key-1"
   },
   "proof": {
     "type": "NOTHING-ED25519",
-    "created": "2026-09-27T00:00:00Z",
+    "created": "2026-10-04T00:00:00Z",
     "proof_purpose": "assertion",
-    "signature": "dO0FHfEubuo8DM77sE9zKrwnPWn2N3ZQEFn6M8jfaVujCPlMEElJN4xgUpBpfjWXo3MyEj2ZFpAGRxaVYd8eAg"
+    "signature": "9k-txTd5HPi8nbqkowsumozneXMtCRcbhcdtlAvM3UqMkzUuIgcF2WZryJTOy_Zmfi5uWrkxfdon8n4LJ7KCAw"
   }
 }
