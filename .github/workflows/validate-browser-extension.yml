@@ -1,4 +1,4 @@
-name: Validate browser extension
+name: Validate VERQIVIA browser extension
 
 on:
   push:
@@ -34,5 +34,5 @@ jobs:
       - name: Upload packages
         uses: actions/upload-artifact@v4
         with:
-          name: nothing-browser-extension
+          name: verqivia-browser-extension
           path: extension/dist/*.zip
