@@ -73,6 +73,18 @@ class OpenApiContractTests(unittest.TestCase):
             "#/components/schemas/PortableVerificationProfileResponse",
         )
 
+    def test_portable_profile_example_matches_contract(self) -> None:
+        example = json.loads(
+            (ROOT / "api/examples/get-profile-200.json").read_text(encoding="utf-8")
+        )
+        profile = example["data"]
+        self.assertEqual(
+            profile["profile_type"],
+            "VERQIVIA-PORTABLE-VERIFICATION-PROFILE",
+        )
+        self.assertEqual(profile["profile_version"], "0.2-draft")
+        self.assertRegex(profile["verqivia_id"], r"^NTH-[0-9]{6}$")
+
     def test_identity_operation_has_cache_and_error_contract(self) -> None:
         operation = self.spec["paths"]["/v1/identity/{nothing_id}"]["get"]
         self.assertIn("200", operation["responses"])
