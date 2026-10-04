@@ -1,4 +1,4 @@
-name: Deploy NOTHING web to GitHub Pages
+name: Deploy VERQIVIA web to GitHub Pages
 
 on:
   push:
