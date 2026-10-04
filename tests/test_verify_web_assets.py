@@ -102,6 +102,24 @@ class VerifyWebAssetTests(unittest.TestCase):
                 f"inline style attribute found in {html_path.name}",
             )
 
+    def test_local_html_links_resolve(self):
+        import re
+        from urllib.parse import urlparse
+
+        for html_path in (ROOT / "site").glob("*.html"):
+            html = html_path.read_text(encoding="utf-8")
+            for match in re.finditer(r'(?:href|src)="([^"]+)"', html):
+                target = match.group(1)
+                if target.startswith(("http://", "https://", "mailto:", "data:", "#", "?")):
+                    continue
+                parsed = urlparse(target)
+                relative = parsed.path
+                target_path = (html_path.parent / relative).resolve()
+                self.assertTrue(
+                    target_path.exists(),
+                    f"broken local reference {target!r} in {html_path.name}",
+                )
+
     def test_ai_discovery_points_to_machine_endpoint(self):
         discovery = read_json(ROOT / "site/.well-known/verqivia-ai.json")
         self.assertEqual(discovery["document_type"], "VERQIVIA-AI-DISCOVERY")
