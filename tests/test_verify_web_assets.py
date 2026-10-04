@@ -59,16 +59,18 @@ class VerifyWebAssetTests(unittest.TestCase):
 
     def test_verify_page_references_existing_local_assets(self):
         html = (ROOT / "site/verify.html").read_text(encoding="utf-8")
-        required_assets = (
-            "assets/styles.css",
-            "config.js",
-            "assets/app.js?v=",
+        app_js = (ROOT / "site/assets/app.js").read_text(encoding="utf-8")
+
+        for asset in ("assets/styles.css", "config.js", "assets/app.js?v="):
+            self.assertIn(asset, html)
+
+        for asset in (
             "data/demo-bundle.json",
             "data/demo-proof.json",
             "data/demo-issuer-registry.json",
-        )
-        for asset in required_assets[:3]:
-            self.assertIn(asset, html if asset != "data/demo-bundle.json" else "")
+        ):
+            self.assertIn(asset, app_js)
+
         for relative_path in (
             "site/assets/styles.css",
             "site/config.js",
