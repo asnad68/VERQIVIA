@@ -398,10 +398,21 @@
           ? "status-bad"
           : "status-neutral");
 
+    const checkLabels = {
+      resource_matches: "Resource matches",
+      resource_hash_matches: "Resource hash matches",
+      issuer_registered: "Issuer registered",
+      key_active: "Signing key active",
+      key_lifecycle_valid: "Key lifecycle valid",
+      signature_valid: "Ed25519 signature valid"
+    };
     const checks = result?.checks
       ? Object.entries(result.checks)
-          .map(([key, value]) => key + "=" + (value ? "pass" : "fail"))
-          .join(", ")
+          .map(([key, value]) => {
+            const label = checkLabels[key] || key;
+            return label + ": " + (value ? "PASS" : "FAIL");
+          })
+          .join(" · ")
       : "—";
 
     const details = $("#proof-details");
