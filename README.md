@@ -438,7 +438,7 @@ The project should earn trust through transparent verification rather than throu
 
 ## Commercial Access
 
-The current public release supports controlled pilots and early commercial engagements. See `docs/SALES-AND-PRICING.md` and the public [Commercial](site/commercial.html) and [Terms](site/terms.html) pages.
+The current public release supports controlled pilots and early commercial engagements. The public demo uses synthetic data only. See `docs/SALES-AND-PRICING.md` and the public [Commercial](site/commercial.html) and [Terms](site/terms.html) pages.
 
 Production SaaS remains gated by deployment, authentication, persistent infrastructure, security, key-governance and jurisdiction-specific legal/privacy requirements.
 
@@ -567,8 +567,9 @@ See `docs/COMMERCIAL-PILOT.md` and `docs/PILOT-AGREEMENT-TEMPLATE.md`.
 
 **Project:** VERQIVIA  
 **Version:** 0.1  
-**Stage:** Prototype / Research  
-**Cost Target:** $0 for initial proof-of-concept  
+**Stage:** Early Access / Controlled Pilot  
+**Public Demo:** Synthetic data only
+**Production SaaS:** Deployment-gated  
 **Primary Concept:** Business Identity Verification  
 **Commercial Product:** VERQIVIA Verification Infrastructure  
 **Human-facing Marker:** ◇
