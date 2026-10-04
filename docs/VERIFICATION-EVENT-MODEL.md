@@ -1,4 +1,4 @@
-# NOTHING Verification Event Model — Draft v0.1
+# VERQIVIA Verification Event Model — Draft v0.1
 
 ## Purpose
 
@@ -18,7 +18,7 @@ Events are append-oriented records. A later event should supersede an earlier ev
 
 A verification event references:
 
-- one NOTHING subject (`NTH-XXXXXX`)
+- one VERQIVIA subject (`NTH-XXXXXX`)
 - one claim (`CLM-XXXXXX`)
 - one procedure identifier and version
 - zero or more evidence identifiers
@@ -48,7 +48,7 @@ A previous result or claim should no longer be treated as valid.
 
 ## Scope is mandatory
 
-A result without scope is unsafe. NOTHING must state what was established and, equally importantly, what was not established.
+A result without scope is unsafe. VERQIVIA must state what was established and, equally importantly, what was not established.
 
 ## Supersession
 
@@ -74,4 +74,4 @@ A verification event is evidence of a verification process. It is not, by itself
 
 ## Draft status
 
-This is a protocol design document for NOTHING v0.1. It is not a certification standard, legal opinion, or regulatory framework.
+This is a protocol design document for VERQIVIA v0.1. It is not a certification standard, legal opinion, or regulatory framework.
