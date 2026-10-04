@@ -64,6 +64,10 @@ Before real public production use, the operator still has to complete:
 
 These are intentionally outside the repository because they depend on the real deployment environment and legal entity.
 
+## Portable verification layer
+
+The repository now includes an additive 0.2-draft portable verification profile, a profile builder, a schema/example, a public discovery pointer and a public ecosystem use-case page. Production endpoints and external conformance testing remain launch gates.
+
 ## Payment boundary
 
 Crypto settlement remains a future phase. The production payment gate must not be opened merely because the payment code exists in the repository.
