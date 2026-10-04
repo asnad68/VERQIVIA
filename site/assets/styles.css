@@ -482,3 +482,45 @@ button, .button {
     gap: .35rem;
   }
 }
+
+
+/* CSP-safe layout utilities */
+.hero-action-row {
+  margin-top: 28px;
+  max-width: 620px;
+}
+
+.hero-action-row--narrow {
+  margin-top: 28px;
+  max-width: 560px;
+}
+
+.hero-action-row--pilot {
+  margin-top: 32px;
+  max-width: 520px;
+}
+
+.note-spaced {
+  margin-top: 14px;
+}
+
+.muted-eyebrow {
+  color: #aaa;
+}
+
+.code-panel {
+  overflow: auto;
+}
+
+.narrow-page {
+  padding-top: 48px;
+  max-width: 860px;
+}
+
+.compact-panel {
+  margin-top: 24px;
+}
+
+.section-gap-panel {
+  margin-top: 16px;
+}
