@@ -3,15 +3,15 @@
   "version": "0.1",
   "issuers": [
     {
-      "issuer_id": "NTH-DEMO-ISSUER",
+      "issuer_id": "VERQIVIA-DEMO-ISSUER",
       "status": "DEMO",
       "keys": [
         {
-          "key_id": "demo-key-3",
+          "key_id": "verqivia-demo-key-1",
           "type": "Ed25519",
-          "public_key": "gHs5ieqSjlB2zsM5UgDv1k8RxOk7p13iU6gv3vnCwHM",
+          "public_key": "yc4jeIpskpDVdlvzDJlVUFr7JGGcIWLlEewqP-cW-VM",
           "status": "ACTIVE",
-          "valid_from": "2026-09-27T00:00:00Z"
+          "valid_from": "2026-10-04T00:00:00Z"
         }
       ]
     }
