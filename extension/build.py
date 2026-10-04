@@ -18,7 +18,7 @@ def build(browser: str) -> Path:
         if item.is_dir(): shutil.copytree(item, target)
         else: shutil.copy2(item, target)
     shutil.copy2(ROOT / manifest_name, dist / "manifest.json")
-    pkg = ROOT / "dist" / f"nothing-business-identity-{browser}-0.1.0.zip"
+    pkg = ROOT / "dist" / f"verqivia-business-identity-{browser}-0.1.0.zip"
     with zipfile.ZipFile(pkg, "w", zipfile.ZIP_DEFLATED) as z:
         for path in sorted(dist.rglob("*")):
             if path.is_file(): z.write(path, path.relative_to(dist))
