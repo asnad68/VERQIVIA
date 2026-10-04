@@ -37,9 +37,10 @@
     </form>
 
     <div id="loading" class="panel">Loading verification record…</div>
-    <div id="not-found" class="panel error-panel" hidden>
-      <strong>Record not found in the prototype dataset.</strong>
-      <p>Only synthetic demo identities are currently published.</p>
+    <div id="not-found" class="panel error-panel" hidden role="alert">
+      <strong id="not-found-title">Record not found in the current source.</strong>
+      <p id="not-found-detail">Only synthetic demo identities are currently published.</p>
+      <button id="retry" type="button" class="secondary">Try again</button>
     </div>
 
     <section id="result" hidden>
@@ -57,6 +58,7 @@
       </div>
 
       <div id="consistency-warning" class="panel warning-panel" hidden></div>
+      <div id="source-note" class="panel warning-panel" hidden role="status"></div>
 
       <section class="proof-panel panel" aria-labelledby="proof-heading">
         <div class="proof-heading-row">
@@ -99,6 +101,6 @@
   </footer>
 
   <script src="./config.js"></script>
-  <script src="./assets/app.js?v=20261004-2" defer></script>
+  <script src="./assets/app.js?v=20261004-3" defer></script>
 </body>
 </html>
