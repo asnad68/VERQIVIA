@@ -45,6 +45,7 @@ def build_portable_profile(
     api_url: str | None = None,
     discovery_url: str | None = None,
     interop: Mapping[str, str] | None = None,
+    cryptographic_proofs: list[Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Build a deterministic exchange profile from a validated v0.1 bundle."""
     validate_identity(identity)
@@ -132,6 +133,37 @@ def build_portable_profile(
             "legal certification or universal trust score."
         ),
     }
+
+    if cryptographic_proofs:
+        normalized_proofs: list[dict[str, Any]] = []
+        for proof in cryptographic_proofs:
+            envelope_id = _clean_optional_str(
+                proof.get("envelope_id"), "proof.envelope_id"
+            )
+            resource_hash = _clean_optional_str(
+                proof.get("resource_hash"), "proof.resource_hash"
+            )
+            verification = proof.get("verification")
+            _require(
+                isinstance(verification, Mapping),
+                "proof.verification must be an object",
+            )
+            normalized_proofs.append(
+                {
+                    "envelope_id": envelope_id,
+                    "resource_hash": resource_hash,
+                    "verification": {
+                        "valid": bool(verification.get("valid")),
+                        "state": _clean_optional_str(
+                            verification.get("state"), "proof.verification.state"
+                        ),
+                    },
+                    "url": _clean_optional_str(
+                        proof.get("url"), "proof.url"
+                    ),
+                }
+            )
+        profile["proofs"] = normalized_proofs
 
     if api_url:
         profile["links"]["api"] = _clean_optional_str(api_url, "api_url")
