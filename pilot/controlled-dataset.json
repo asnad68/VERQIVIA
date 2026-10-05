@@ -34,7 +34,7 @@
     {
       "evidence_id": "EVD-010001",
       "version": "0.1",
-      "type": "official_website",
+      "type": "web_page",
       "source": {
         "reference": "https://pilot.example.com",
         "title": "Synthetic pilot website",
