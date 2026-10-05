@@ -1271,7 +1271,7 @@ class NothingApiHandler(BaseHTTPRequestHandler):
             bundle = self.store.get_identity_bundle(nothing_id)
             identity = bundle.identity.record
             events = [item.record for item in bundle.events]
-            evidence = [item.record for item in bundle.evidence]
+            evidence = list(bundle.evidence)
             proof_registry = _load_proof_registry()
             proof_refs = []
             for stored_proof in bundle.proofs:
