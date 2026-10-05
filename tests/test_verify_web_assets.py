@@ -109,6 +109,14 @@ class VerifyWebAssetTests(unittest.TestCase):
         self.assertIn('id="copy-state"', html)
         self.assertIn('navigator.clipboard', app_js)
 
+    def test_security_txt_exists_and_points_to_public_policy(self):
+        path = ROOT / "site/.well-known/security.txt"
+        self.assertTrue(path.is_file())
+        text = path.read_text(encoding="utf-8")
+        self.assertIn("Contact: https://github.com/asnad68/VERQIVIA/security/advisories/new", text)
+        self.assertIn("Policy: https://asnad68.github.io/VERQIVIA/security.html", text)
+        self.assertIn("Canonical: https://asnad68.github.io/VERQIVIA/.well-known/security.txt", text)
+
     def test_local_html_links_resolve(self):
         import re
         from urllib.parse import urlparse
