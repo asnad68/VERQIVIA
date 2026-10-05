@@ -23,6 +23,7 @@ COPY schema ./schema
 COPY procedures ./procedures
 COPY api ./api
 COPY config ./config
+COPY scripts ./scripts
 
 RUN chown -R nothing:nothing /app
 
