@@ -8,11 +8,12 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    plan: free
+    plan: 0.5c-512mb
     region: frankfurt
     branch: main
     autoDeploy: true
     healthCheckPath: /readyz
+    preDeployCommand: python scripts/migrate_postgres.py
     envVars:
       - key: NOTHING_STORAGE_BACKEND
         value: postgres
@@ -51,6 +52,6 @@ databases:
   - name: verqivia-postgres
     databaseName: verqivia_prod
     user: verqivia_runtime
-    plan: free
-    postgresMajorVersion: "15"
+    plan: 0.1c-256mb
+    postgresMajorVersion: "17"
     ipAllowList: []
