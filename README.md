@@ -442,6 +442,8 @@ The current public release supports controlled pilots and early commercial engag
 
 Production SaaS remains gated by deployment, authentication, persistent infrastructure, security, key-governance and jurisdiction-specific legal/privacy requirements.
 
+For the current launch state, see `docs/FIRST-CUSTOMER-READINESS.md` and `docs/PRODUCTION-DEPLOYMENT.md`.
+
 
 ---
 
