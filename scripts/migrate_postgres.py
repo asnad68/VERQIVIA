@@ -8,10 +8,13 @@ changes are applied before the new application instance receives traffic.
 
 from __future__ import annotations
 
+import os
+
 from src.nothing_postgres import PostgreSQLNothingStore
 
 
 def main() -> int:
+    os.environ["NOTHING_POSTGRES_AUTO_MIGRATE"] = "true"
     store = PostgreSQLNothingStore.from_environment()
     try:
         if not store.health():
