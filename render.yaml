@@ -57,4 +57,5 @@ databases:
     postgresMajorVersion: "17"
     diskSizeGB: 5
     diskAutoscalingEnabled: false
+    connectionPool: none
     ipAllowList: []
