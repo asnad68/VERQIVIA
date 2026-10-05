@@ -9,9 +9,10 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     plan: 0.5c-512mb
+    numInstances: 1
     region: frankfurt
     branch: main
-    autoDeploy: true
+    autoDeployTrigger: checksPass
     healthCheckPath: /readyz
     preDeployCommand: python scripts/migrate_postgres.py
     envVars:
@@ -52,6 +53,8 @@ databases:
   - name: verqivia-postgres
     databaseName: verqivia_prod
     user: verqivia_runtime
-    plan: 0.1c-256mb
+    plan: 0.5c-1g
     postgresMajorVersion: "17"
+    diskSizeGB: 5
+    diskAutoscalingEnabled: false
     ipAllowList: []
