@@ -127,7 +127,18 @@
       )
     ]);
 
-    const proofView = (identityPayload.data.cryptographic_proofs || [])[0] || null;
+    const proofReference =
+      (identityPayload.data.cryptographic_proofs || [])[0] || null;
+    const proofEnvelopeId =
+      proofReference?.envelope_id ||
+      proofReference?.envelope?.envelope_id ||
+      null;
+    const proofPayload = proofEnvelopeId
+      ? await fetchJson(
+          `/v1/proofs/${encodeURIComponent(proofEnvelopeId)}`
+        ).catch(() => null)
+      : null;
+    const proofView = proofPayload?.data || proofReference;
 
     return {
       mode: "live",
