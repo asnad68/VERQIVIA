@@ -24,6 +24,8 @@ jobs:
         run: |
           node --check site/register.js
           node --check site/assets/app.js
+      - name: Compile Python sources
+        run: python -m compileall -q src scripts tests
       - name: Run repository preflight
         run: python scripts/preflight.py
       - name: Run unit tests
