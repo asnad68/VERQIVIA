@@ -454,6 +454,68 @@ class PostgreSQLPersistenceIntegrationTests(unittest.TestCase):
         self.assertEqual(identity.record["nothing_id"], "NTH-000001")
         self.assertTrue(self.store.health())
 
+    def test_authorized_ingestion_rolls_back_authorization_on_post_consume_failure(self):
+        from datetime import datetime, timedelta, timezone
+
+        now = datetime.now(timezone.utc).replace(microsecond=0)
+        now_iso = now.isoformat().replace("+00:00", "Z")
+        expires = (now + timedelta(minutes=5)).isoformat().replace("+00:00", "Z")
+        registration_digest = "d" * 64
+        challenge_id = "pg-atomic-ingestion-challenge"
+
+        self.store.create_auth_challenge(
+            challenge_id=challenge_id,
+            purpose="google_oidc",
+            nonce="pg-atomic-nonce",
+            wallet_address=None,
+            domain="example.com",
+            uri="https://example.com",
+            chain_id=1,
+            message_sha256="e" * 64,
+            issued_at=now_iso,
+            expires_at=expires,
+            actor="pg-test-auth",
+        )
+        self.store.authorize_google_challenge(
+            challenge_id,
+            nonce="pg-atomic-nonce",
+            message_sha256="e" * 64,
+            authorization={
+                "registration_digest": registration_digest,
+                "domain": "example.com",
+            },
+            now=now_iso,
+            actor="pg-test-auth",
+        )
+
+        bundle = self.make_bundle()
+        original = self.store._consume_auth_authorization_in_connection
+
+        def consume_then_fail(connection, challenge, **kwargs):
+            original(connection, challenge, **kwargs)
+            raise RuntimeError("forced post-consume failure")
+
+        self.store._consume_auth_authorization_in_connection = consume_then_fail
+        try:
+            with self.assertRaises(RuntimeError):
+                self.store.ingest_bundle(
+                    bundle,
+                    actor="pg-atomic",
+                    idempotency_key="pg-atomic-ingestion",
+                    request_sha256="f" * 64,
+                    ingestion_id="33333333-3333-4333-8333-333333333333",
+                    authorization_challenge_id=challenge_id,
+                    authorization_registration_digest=registration_digest,
+                    authorization_wallet_address=None,
+                )
+        finally:
+            self.store._consume_auth_authorization_in_connection = original
+
+        challenge = self.store.get_auth_challenge(challenge_id)
+        self.assertIsNone(challenge["registration_consumed_at"])
+        with self.assertRaises(NotFoundError):
+            self.store.get_identity("NTH-777777")
+
     def test_concurrent_same_idempotency_key_has_one_commit(self):
         bundle = self.make_bundle()
         key = "postgres-concurrent-ingestion"
