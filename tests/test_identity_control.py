@@ -265,13 +265,18 @@ class IdentityControlTests(unittest.TestCase):
     def test_google_multi_audience_requires_matching_authorized_party(self):
         import jwt
         from datetime import datetime, timedelta, timezone
-        from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat, NoEncryption
+        from cryptography.hazmat.primitives.serialization import (
+            Encoding,
+            PrivateFormat,
+            PublicFormat,
+            NoEncryption,
+        )
         from cryptography.hazmat.primitives.asymmetric import rsa
 
         private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
         public_pem = private_key.public_key().public_bytes(
             Encoding.PEM,
-            __import__("cryptography").hazmat.primitives.serialization.PublicFormat.SubjectPublicKeyInfo,
+            PublicFormat.SubjectPublicKeyInfo,
         )
 
         class FakeSigningKey:
