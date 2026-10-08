@@ -124,6 +124,7 @@ def _require_enabled() -> None:
         ("NOTHING_ENROLLMENT_PRICE_ID", PRICE_ID),
         ("NOTHING_ENROLLMENT_EVM_RPC_URL", EVM_RPC_URL),
         ("NOTHING_VERIFY_BASE_URL", VERIFY_BASE_URL),
+        ("NOTHING_ENROLLMENT_ALLOWED_ORIGIN", ALLOWED_ORIGIN),
     ):
         if not value:
             missing.append(key)
@@ -346,9 +347,11 @@ class Handler(BaseHTTPRequestHandler):
 
     def _origin_allowed(self) -> bool:
         origin = self.headers.get("Origin")
-        if not origin or not ALLOWED_ORIGIN:
+        if not origin:
             return True
-        return origin == ALLOWED_ORIGIN
+        if not ALLOWED_ORIGIN:
+            return False
+        return origin.strip().rstrip("/") == ALLOWED_ORIGIN.rstrip("/")
 
     def _require_allowed_origin(self) -> bool:
         if self._origin_allowed():
