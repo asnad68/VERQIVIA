@@ -11,8 +11,9 @@ from src.nothing_identity_control import (
     normalize_domain,
     verify_google_workspace_principal,
     wallet_principal,
-    build_organization_controlled_identity,
 )
+from src.nothing_enrollment import build_organization_controlled_identity
+
 
 
 class IdentityControlTests(unittest.TestCase):
