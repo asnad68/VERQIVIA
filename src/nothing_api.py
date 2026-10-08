@@ -291,22 +291,51 @@ def _meta(*, demo: bool, generated_at: str) -> dict[str, Any]:
 
 
 class RateLimiter:
-    def __init__(self, window_seconds: int, max_requests: int) -> None:
+    def __init__(
+        self,
+        window_seconds: int,
+        max_requests: int,
+        *,
+        max_keys: int | None = None,
+    ) -> None:
         self.window_seconds = max(1, window_seconds)
         self.max_requests = max(1, max_requests)
+        configured_max_keys = max_keys or int(
+            os.getenv("NOTHING_RATE_LIMIT_MAX_KEYS", "10000")
+        )
+        self.max_keys = max(1, configured_max_keys)
         self._lock = threading.Lock()
         self._windows: dict[str, tuple[float, int]] = {}
 
+    def _prune_expired(self, current: float) -> None:
+        cutoff = current - self.window_seconds
+        expired = [
+            key
+            for key, (started, _) in self._windows.items()
+            if started <= cutoff
+        ]
+        for key in expired:
+            self._windows.pop(key, None)
+
     def allow(self, key: str, now: float | None = None) -> bool:
         current = now if now is not None else time.monotonic()
+        normalized_key = str(key)
         with self._lock:
-            started, count = self._windows.get(key, (current, 0))
+            if normalized_key not in self._windows and len(self._windows) >= self.max_keys:
+                self._prune_expired(current)
+                if len(self._windows) >= self.max_keys:
+                    return False
+
+            started, count = self._windows.get(
+                normalized_key,
+                (current, 0),
+            )
             if current - started >= self.window_seconds:
                 started, count = current, 0
             if count >= self.max_requests:
-                self._windows[key] = (started, count)
+                self._windows[normalized_key] = (started, count)
                 return False
-            self._windows[key] = (started, count + 1)
+            self._windows[normalized_key] = (started, count + 1)
             return True
 
 
