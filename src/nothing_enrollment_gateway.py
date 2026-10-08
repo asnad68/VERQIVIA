@@ -281,10 +281,26 @@ def _public_identity(
     if snapshot["status"] not in {"paid", "overpaid"} or not snapshot.get("entitlement"):
         raise ConflictError("payment has not activated the registration entitlement")
 
-    authorization = None
+    digest = draft.digest()
     official = authorization_challenge_id is not None
     if OFFICIAL_REGISTRATION_REQUIRED and not official:
         raise ConflictError("official organization authorization is required for registration")
+
+    idempotency_key = (
+        f"enrollment:{invoice_id}:{digest}:"
+        f"{authorization_challenge_id or 'self'}"
+    )
+    replay = store.get_ingestion_result(
+        actor=ACTOR,
+        idempotency_key=idempotency_key,
+    )
+    if replay is not None:
+        identities = replay.data.get("identities", [])
+        if len(identities) != 1 or not identities[0].get("id"):
+            raise StoreError("stored enrollment idempotency result is invalid")
+        return store.get_identity(str(identities[0]["id"])).record
+
+    authorization = None
     if official:
         authorization = _registration_authorization(
             store,
@@ -293,7 +309,6 @@ def _public_identity(
             draft,
         )
 
-    digest = draft.digest()
     for candidate in candidate_nothing_ids(digest, 64):
         try:
             store.get_identity(candidate)
@@ -316,22 +331,23 @@ def _public_identity(
                 sort_keys=True,
                 separators=(",", ":"),
             ).encode("utf-8")
-            if official:
-                consumed = store.consume_auth_authorization(
-                    str(authorization_challenge_id),
-                    registration_digest=digest,
-                    wallet_address=wallet,
-                    now=_iso_z(datetime.now(timezone.utc)),
-                    actor=ACTOR,
-                )
-                if not consumed:
-                    raise ConflictError("official registration authorization could not be consumed")
             stored = store.ingest_bundle(
                 bundle,
                 actor=ACTOR,
-                idempotency_key=f"enrollment:{invoice_id}",
+                idempotency_key=idempotency_key,
                 request_sha256=hashlib.sha256(raw).hexdigest(),
                 ingestion_id=str(uuid.uuid4()),
+                authorization_challenge_id=(
+                    str(authorization_challenge_id)
+                    if official
+                    else None
+                ),
+                authorization_registration_digest=(
+                    digest if official else None
+                ),
+                authorization_wallet_address=(
+                    wallet if official else None
+                ),
             )
             if getattr(stored, "replayed", False):
                 return identity
