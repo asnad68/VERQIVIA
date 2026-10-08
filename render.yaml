@@ -43,7 +43,7 @@ services:
       - key: NOTHING_WRITE_ALLOWED_ORIGINS
         value: https://asnad68.github.io
       - key: NOTHING_BILLING_ENABLED
-        value: false
+        value: "false"
       - key: NOTHING_DOMAIN_CHALLENGE_SECRET
         generateValue: true
       - key: NOTHING_PUBLIC_SITE_ORIGIN
