@@ -86,6 +86,9 @@ class IdentityControlTests(unittest.TestCase):
         )
         validate_identity(identity)
         self.assertEqual(identity["claims"][0]["source"]["type"], "domain_control")
+        self.assertEqual(identity["claims"][0]["status"], "SOURCE-VERIFIED")
+        self.assertEqual(identity["claims"][1]["status"], "SELF-CLAIMED")
+        self.assertEqual(identity["claims"][2]["status"], "SELF-CLAIMED")
 
     def test_wrong_domain_cannot_pass_apple_automatic_gate(self):
         principal = wallet_principal(
