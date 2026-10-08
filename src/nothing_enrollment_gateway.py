@@ -34,7 +34,12 @@ from src.nothing_enrollment import (
 )
 from src.nothing_postgres import PostgreSQLNothingStore
 from src.nothing_payments import PaymentInvoice
-from src.nothing_store import ConflictError, NotFoundError, StoreError
+from src.nothing_store import (
+    ConflictError,
+    NotFoundError,
+    StoreError,
+    _content_hash,
+)
 from src.nothing_identity_control import (
     IdentityControlError,
     verify_google_id_token,
@@ -310,21 +315,25 @@ def _public_identity(
         )
 
     for candidate in candidate_nothing_ids(digest, 64):
+        if official and authorization is not None:
+            identity = build_organization_controlled_identity(
+                draft,
+                candidate,
+                authorization_method=str(authorization.get("authorization_method", "wallet_siwe+dns_txt")),
+                controlled_domain=str(authorization["domain"]),
+            )
+        else:
+            identity = build_self_claimed_identity(draft, candidate)
+
         try:
-            store.get_identity(candidate)
+            existing = store.get_identity(candidate)
+            if _content_hash(existing.record) == _content_hash(identity):
+                return existing.record
             continue
         except NotFoundError:
-            if official and authorization is not None:
-                identity = build_organization_controlled_identity(
-                    draft,
-                    candidate,
-                    authorization_method=str(authorization.get("authorization_method", "wallet_siwe+dns_txt")),
-                    controlled_domain=str(authorization["domain"]),
-                )
-            else:
-                identity = build_self_claimed_identity(draft, candidate)
+            pass
 
-            bundle = {"identities": [identity], "evidence": [], "verification_events": []}
+        bundle = {"identities": [identity], "evidence": [], "verification_events": []}
             raw = json.dumps(
                 bundle,
                 ensure_ascii=False,
