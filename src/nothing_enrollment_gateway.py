@@ -347,6 +347,11 @@ class Handler(BaseHTTPRequestHandler):
         self.connection.settimeout(HTTP_REQUEST_TIMEOUT_SECONDS)
     server_version = "VERQIVIA-Enrollment/0.1"
 
+    def log_message(self, fmt: str, *args: Any) -> None:
+        # Suppress raw request lines so malformed requests cannot leak credentials,
+        # payment data, or query strings into enrollment logs.
+        return
+
     def _send(self, status: int, payload: dict[str, Any] | None) -> None:
         body = _json_bytes(payload) if payload is not None else b""
         self.send_response(status)
