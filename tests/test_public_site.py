@@ -42,8 +42,6 @@ class PublicSiteSmokeTests(unittest.TestCase):
         self.assertNotIn("XMLHttpRequest", script)
 
     def test_all_public_html_pages_have_csp_and_resolve_local_assets(self):
-        import re
-
         html_files = sorted(SITE.glob("*.html"))
         self.assertTrue(html_files)
 
