@@ -24,6 +24,7 @@ SOURCE_TYPES = {
     "official_website",
     "public_record",
     "authorized_document",
+    "domain_control",
     "third_party_source",
     "self_attestation",
 }
