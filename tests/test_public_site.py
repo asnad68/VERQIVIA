@@ -55,7 +55,7 @@ class PublicSiteSmokeTests(unittest.TestCase):
                 )
                 self.assertNotRegex(page, r"<style(?:\\s|>)")
                 for match in re.finditer(
-                    r'''(?:href|src)="([^"]+)"''",
+                    r'''(?:href|src)="([^"]+)"''',
                     page,
                     re.IGNORECASE,
                 ):
