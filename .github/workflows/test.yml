@@ -27,6 +27,7 @@ jobs:
       - name: Check browser JavaScript syntax
         run: |
           node --check site/register.js
+          node --check site/portal.js
           node --check site/assets/app.js
       - name: Compile Python sources
         run: python -m compileall -q src scripts tests
