@@ -359,8 +359,8 @@ def _public_identity(
             ),
         )
         if getattr(stored, "replayed", False):
-                return identity
             return identity
+        return identity
     raise EnrollmentValidationError("could not allocate a unique VERQIVIA ID")
 
 
