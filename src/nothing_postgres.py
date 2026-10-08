@@ -533,6 +533,89 @@ class PostgreSQLNothingStore:
                     )
                 return changed
 
+    def _consume_auth_authorization_in_connection(
+        self,
+        connection: Any,
+        challenge_id: str,
+        *,
+        registration_digest: str,
+        wallet_address: str | None,
+        now: str,
+        actor: str,
+    ) -> bool:
+        challenge_id = str(challenge_id or "").strip()
+        registration_digest = str(registration_digest or "").strip().lower()
+        wallet_address = str(wallet_address or "").strip().lower() if wallet_address else None
+        now = str(now).strip()
+        actor = str(actor).strip()
+        if not challenge_id or len(registration_digest) != 64 or not now or not actor:
+            raise ValueError("invalid authentication authorization consumption")
+
+        row = connection.execute(
+            """
+            SELECT purpose, wallet_address, authorization_status,
+                   registration_consumed_at, expires_at,
+                   COALESCE(authorization_json->>'registration_digest', '') AS registration_digest
+            FROM auth_challenges
+            WHERE challenge_id = %s
+            FOR UPDATE
+            """,
+            (challenge_id,),
+        ).fetchone()
+        if row is None:
+            raise NotFoundError(challenge_id)
+
+        wallet_ok = (
+            row["purpose"] == "google_oidc"
+            or (
+                row["purpose"] == "wallet_siwe"
+                and wallet_address is not None
+                and str(row["wallet_address"] or "").lower() == wallet_address
+            )
+        )
+        valid = (
+            row["authorization_status"] == "AUTHORIZED"
+            and row["registration_consumed_at"] is None
+            and wallet_ok
+            and str(row["registration_digest"]).lower() == registration_digest
+            and row["expires_at"] > _parse_time(now)
+        )
+        if not valid:
+            return False
+
+        changed = connection.execute(
+            """
+            UPDATE auth_challenges
+            SET registration_consumed_at = %s::timestamptz
+            WHERE challenge_id = %s
+              AND authorization_status = 'AUTHORIZED'
+              AND registration_consumed_at IS NULL
+            RETURNING challenge_id
+            """,
+            (now, challenge_id),
+        ).fetchone() is not None
+        if changed:
+            connection.execute(
+                """
+                INSERT INTO audit_log(
+                    recorded_at, actor, action, record_type, record_id, details_json
+                ) VALUES (%s::timestamptz, %s, 'CONSUME', 'auth_challenge', %s, %s)
+                """,
+                (
+                    now,
+                    actor,
+                    challenge_id,
+                    json.dumps(
+                        {
+                            "registration_consumed": True,
+                            "registration_digest": registration_digest,
+                        },
+                        separators=(",", ":"),
+                    ),
+                ),
+            )
+        return changed
+
     @_translate_database_errors
     def consume_auth_authorization(
         self,
@@ -552,71 +635,14 @@ class PostgreSQLNothingStore:
             raise ValueError("invalid authentication authorization consumption")
         with self._pool.connection() as connection:
             with connection.transaction():
-                row = connection.execute(
-                    """
-                    UPDATE auth_challenges
-                    SET registration_consumed_at = %s::timestamptz
-                    WHERE challenge_id = %s
-                      AND authorization_status = 'AUTHORIZED'
-                      AND registration_consumed_at IS NULL
-                      AND (
-                          purpose = 'google_oidc'
-                          OR (purpose = 'wallet_siwe' AND wallet_address = %s)
-                      )
-                      AND expires_at > %s::timestamptz
-                      AND COALESCE(authorization_json->>'registration_digest', '') = %s
-                    RETURNING challenge_id
-                    """,
-                    (now, challenge_id, wallet_address, now, registration_digest),
-                ).fetchone()
-                changed = row is not None
-                if changed:
-                    connection.execute(
-                        """
-                        INSERT INTO audit_log(
-                            recorded_at, actor, action, record_type, record_id, details_json
-                        ) VALUES (%s::timestamptz, %s, 'CONSUME', 'auth_challenge', %s, %s)
-                        """,
-                        (
-                            now,
-                            actor,
-                            challenge_id,
-                            json.dumps({"registration_consumed": True}, separators=(",", ":")),
-                        ),
-                    )
-                return changed
-
-    @_translate_database_errors
-    def get_payment_worker_checkpoint(
-        self,
-        worker_name: str,
-        account: str,
-    ) -> dict[str, Any] | None:
-        if not worker_name.strip() or not account.strip():
-            raise ValueError("worker_name and account are required")
-        with self._pool.connection() as connection:
-            row = connection.execute(
-                """
-                SELECT worker_name, account, last_tx_hash,
-                       last_ledger_index, updated_at
-                FROM payment_worker_checkpoints
-                WHERE worker_name = %s AND account = %s
-                """,
-                (worker_name, account),
-            ).fetchone()
-        if row is None:
-            return None
-        return {
-            "worker_name": row["worker_name"],
-            "account": row["account"],
-            "last_tx_hash": row["last_tx_hash"],
-            "last_ledger_index": (
-                int(row["last_ledger_index"])
-                if row["last_ledger_index"] is not None
-                else None
-            ),
-            "updated_at": row["updated_at"],
-        }
+                return self._consume_auth_authorization_in_connection(
+                    connection,
+                    challenge_id,
+                    registration_digest=registration_digest,
+                    wallet_address=wallet_address,
+                    now=now,
+                    actor=actor,
+                )
 
     @_retry_serializable_method
     @_translate_database_errors
@@ -1753,6 +1779,9 @@ class PostgreSQLNothingStore:
         request_sha256: str,
         ingestion_id: str,
         recorded_at: str | None = None,
+        authorization_challenge_id: str | None = None,
+        authorization_registration_digest: str | None = None,
+        authorization_wallet_address: str | None = None,
     ) -> IngestionResult:
         if not actor or not actor.strip():
             raise ValueError("actor must be a non-empty string")
@@ -2259,6 +2288,24 @@ class PostgreSQLNothingStore:
                     "verification_event_count": len(event_actions),
                 },
             )
+
+            if authorization_challenge_id is not None:
+                if authorization_registration_digest is None:
+                    raise ValueError(
+                        "authorization_registration_digest is required with authorization_challenge_id"
+                    )
+                consumed = self._consume_auth_authorization_in_connection(
+                    connection,
+                    authorization_challenge_id,
+                    registration_digest=authorization_registration_digest,
+                    wallet_address=authorization_wallet_address,
+                    now=recorded,
+                    actor=actor,
+                )
+                if not consumed:
+                    raise ConflictError(
+                        "official registration authorization could not be consumed"
+                    )
 
             connection.execute(
                 """
