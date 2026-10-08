@@ -25,9 +25,14 @@ The identity/verification core is the current product scope. Cryptocurrency paym
 | CI | Active | Unit, PostgreSQL integration, container builds and repository preflight |
 | Static-site security | Hardened | CSP added to public pages |
 | GitHub Pages workflow | Configured | Workflow requests Pages enablement and deploys site/ |
-| Payments | Frozen | Existing code retained; no new payment work in this scope |\n| Controlled pilot fixture | Complete | Synthetic lifecycle dataset plus CI validation |\n| Interoperability boundary | Defined | W3C VC, OpenID4VCI, GLEIF/LEI and BIMI integration boundaries documented |
+| Payments | Frozen | Existing code retained; no new payment work in this scope |
+| Controlled pilot fixture | Complete | Synthetic lifecycle dataset plus CI validation |
+| Interoperability boundary | Defined | W3C VC, OpenID4VCI, GLEIF/LEI and BIMI integration boundaries documented |
 | Commercial packaging | Complete for early access | Commercial offering, terms and reusable proposal framework published; production SaaS remains gated |
-| Deployment blueprint | Prepared | Root `render.yaml` defines API + static site + PostgreSQL target; external workspace, authentication and billing gates remain |\n| Operational security | Defined | Authentication, secret, network, data, key, logging and incident gates documented |\n| Backup/restore | Defined | Restore drill and integrity requirements documented |\n| Observability | Defined | Availability, DB, identity, verification and billing signals documented |
+| Deployment blueprint | Prepared | Root `render.yaml` defines API + static site + PostgreSQL target; external workspace, authentication and billing gates remain |
+| Operational security | Defined | Authentication, secret, network, data, key, logging and incident gates documented |
+| Backup/restore | Defined | Restore drill and integrity requirements documented |
+| Observability | Defined | Availability, DB, identity, verification and billing signals documented |
 
 ## What "complete" means
 
@@ -47,7 +52,7 @@ It does not mean:
 See `docs/NAME-CLEARANCE.md` for the official-search and professional-review checklist.
 
 
-Before filing or spending materially on the **VERQIVIA** brand, the project must complete a professional trademark/name-clearance review in the intended jurisdictions and for the actual goods/services. A current public-source check The current project name is VERQIVIA. A professional clearance is still required before filing or materially expanding commercial use.
+Before filing or spending materially on the **VERQIVIA** brand, the project must complete a professional trademark/name-clearance review in the intended jurisdictions and for the actual goods/services. The current project name is VERQIVIA. A professional clearance is still required before filing or materially expanding commercial use.
 
 Project rule: do not describe VERQIVIA as a registered trademark until an appropriate clearance and filing strategy has been completed.
 
