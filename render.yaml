@@ -53,11 +53,11 @@ services:
       - key: NOTHING_TRUST_PROXY_HEADERS
         value: false
       - key: NOTHING_IDENTITY_CONTROL_ENABLED
-        value: false
+        value: "false"
       - key: NOTHING_WALLET_AUTH_ENABLED
-        value: false
+        value: "false"
       - key: NOTHING_ENROLLMENT_ENABLED
-        value: false
+        value: "false"
 
 databases:
   - name: verqivia-postgres
