@@ -57,6 +57,8 @@ def main() -> int:
         ROOT / "schema/procedure-registry.schema.json",
         ROOT / "schema/proof.schema.json",
         ROOT / "schema/issuer-registry.schema.json",
+        ROOT / "schema/portable-verification-profile.schema.json",
+        ROOT / "schema/registration-draft.schema.json",
     ]
     for path in schema_paths:
         check_schema(path)
@@ -143,6 +145,26 @@ def main() -> int:
         ROOT / "schema/issuer-registry.schema.json",
         ROOT / "site/data/demo-issuer-registry.json",
     )
+
+    profile_example = read_json(ROOT / "api/examples/get-profile-200.json")
+    Draft202012Validator(
+        read_json(ROOT / "schema/portable-verification-profile.schema.json"),
+        format_checker=FormatChecker(),
+    ).validate(profile_example["data"])
+
+    registration_example = {
+        "name": "Preflight Example",
+        "type": "business",
+        "website": "https://example.com",
+        "domains": ["example.com"],
+        "channels": ["https://example.com/contact"],
+        "description": "Synthetic preflight registration draft.",
+    }
+    Draft202012Validator(
+        read_json(ROOT / "schema/registration-draft.schema.json"),
+        format_checker=FormatChecker(),
+    ).validate(registration_example)
+
 
     print("VERQIVIA PREFLIGHT: OK")
     print("Validated: schemas, protocol fixtures, pilot lifecycle, relationship graph, cryptographic proof, public demo parity")
