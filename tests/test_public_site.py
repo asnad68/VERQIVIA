@@ -41,6 +41,37 @@ class PublicSiteSmokeTests(unittest.TestCase):
         self.assertNotIn("fetch(", script)
         self.assertNotIn("XMLHttpRequest", script)
 
+    def test_all_public_html_pages_have_csp_and_resolve_local_assets(self):
+        import re
+
+        html_files = sorted(SITE.glob("*.html"))
+        self.assertTrue(html_files)
+
+        for path in html_files:
+            page = path.read_text(encoding="utf-8")
+            with self.subTest(page=path.name):
+                self.assertIn("Content-Security-Policy", page)
+                self.assertNotRegex(
+                    page,
+                    r"<script(?![^>]*\\bsrc=)[^>]*>",
+                )
+                self.assertNotRegex(page, r"<style(?:\\s|>)")
+                for match in re.finditer(
+                    r'''(?:href|src)="([^"]+)"''",
+                    page,
+                    re.IGNORECASE,
+                ):
+                    target = match.group(1).split("#", 1)[0].split("?", 1)[0]
+                    if not target or target.startswith(
+                        ("#", "/", "http:", "https:", "mailto:")
+                    ):
+                        continue
+                    self.assertTrue(
+                        (path.parent / target).resolve().is_file(),
+                        f"{path.name} references missing local asset: {target}",
+                    )
+
+
 
 if __name__ == "__main__":
     unittest.main()
