@@ -36,9 +36,14 @@ services:
         sync: false
       - key: NOTHING_AUTH_JWKS_URI
         sync: false
+      - key: NOTHING_AUTH_REQUIRED_SCOPE
         value: nothing:ingest
       - key: NOTHING_AUTH_ALLOWED_ALGORITHMS
         value: RS256
+      - key: NOTHING_WRITE_ALLOWED_ORIGINS
+        value: https://asnad68.github.io
+      - key: NOTHING_BILLING_ENABLED
+        value: false
       - key: NOTHING_DOMAIN_CHALLENGE_SECRET
         generateValue: true
       - key: NOTHING_PUBLIC_SITE_ORIGIN
@@ -46,6 +51,12 @@ services:
       - key: NOTHING_PUBLIC_API_ORIGIN
         sync: false
       - key: NOTHING_TRUST_PROXY_HEADERS
+        value: false
+      - key: NOTHING_IDENTITY_CONTROL_ENABLED
+        value: false
+      - key: NOTHING_WALLET_AUTH_ENABLED
+        value: false
+      - key: NOTHING_ENROLLMENT_ENABLED
         value: false
 
 databases:
