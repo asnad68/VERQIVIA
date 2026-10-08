@@ -433,6 +433,10 @@ def verify_google_id_token(
     issuer = str(claims.get("iss", "")).rstrip("/")
     if issuer not in {"https://accounts.google.com", "accounts.google.com"}:
         raise IdentityControlError("Google ID token issuer is not accepted")
+    audience = claims.get("aud")
+    if isinstance(audience, list) and len(audience) > 1:
+        if claims.get("azp") != client_id:
+            raise IdentityControlError("Google ID token authorized party does not match the configured client")
     if claims.get("email_verified") is not True:
         raise IdentityControlError("Google email is not verified")
 
