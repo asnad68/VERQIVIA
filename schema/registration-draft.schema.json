@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/asnad68/NOTHING/blob/main/schema/registration-draft.schema.json",
-  "title": "NOTHING Registration Draft",
+  "$id": "https://github.com/asnad68/VERQIVIA/blob/main/schema/registration-draft.schema.json",
+  "title": "VERQIVIA Registration Draft",
   "type": "object",
   "additionalProperties": false,
   "required": ["name", "type", "website", "domains", "channels", "description"],
