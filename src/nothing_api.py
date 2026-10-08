@@ -91,6 +91,10 @@ BILLING_SCOPE = os.getenv(
     "NOTHING_BILLING_REQUIRED_SCOPE",
     "nothing:billing",
 ).strip()
+BILLING_ENABLED = os.getenv(
+    "NOTHING_BILLING_ENABLED",
+    "false",
+).lower() in {"1", "true", "yes"}
 
 BILLING_RATE_LIMIT_WINDOW_SECONDS = int(
     os.getenv("NOTHING_BILLING_RATE_WINDOW_SECONDS", "60")
@@ -105,6 +109,11 @@ TRUST_PROXY_HEADERS = os.getenv(
 TENANCY_MODE = os.getenv("NOTHING_TENANCY_MODE", "single-tenant").strip().lower()
 PUBLIC_SITE_ORIGIN = os.getenv("NOTHING_PUBLIC_SITE_ORIGIN", "").strip().rstrip("/")
 PUBLIC_API_ORIGIN = os.getenv("NOTHING_PUBLIC_API_ORIGIN", "").strip().rstrip("/")
+WRITE_CORS_ALLOWED_ORIGINS = tuple(
+    item.strip().rstrip("/")
+    for item in os.getenv("NOTHING_WRITE_ALLOWED_ORIGINS", "").split(",")
+    if item.strip()
+)
 
 
 def _repo_root() -> Path:
@@ -440,7 +449,11 @@ class NothingApiHandler(BaseHTTPRequestHandler):
             "public, max-age=60" if allow_cache else "no-store",
         )
         self.send_header("Referrer-Policy", "no-referrer")
-        if getattr(self, "_cors_allowed", True):
+        cors_origin = getattr(self, "_cors_origin", None)
+        if cors_origin:
+            self.send_header("Access-Control-Allow-Origin", cors_origin)
+            self.send_header("Vary", "Origin")
+        elif getattr(self, "_cors_allowed", True):
             self.send_header("Access-Control-Allow-Origin", "*")
         if etag:
             self.send_header("ETag", etag)
@@ -507,6 +520,31 @@ class NothingApiHandler(BaseHTTPRequestHandler):
             return False
         return True
 
+    def _prepare_write_cors(self) -> bool:
+        origin = self.headers.get("Origin")
+        self._cors_allowed = False
+        self._cors_origin = None
+        if not origin:
+            return True
+        normalized = origin.strip().rstrip("/")
+        if normalized not in WRITE_CORS_ALLOWED_ORIGINS:
+            self._send_problem(
+                403,
+                "ORIGIN_NOT_ALLOWED",
+                "This browser origin is not authorized for the write API.",
+            )
+            return False
+        parsed = urlparse(normalized)
+        if parsed.scheme != "https" or not parsed.netloc:
+            self._send_problem(
+                403,
+                "ORIGIN_NOT_ALLOWED",
+                "Only HTTPS browser origins may use the write API.",
+            )
+            return False
+        self._cors_origin = normalized
+        return True
+
     def _method_not_allowed(self) -> None:
         self.send_response(405)
         self.send_header("Allow", "GET, OPTIONS")
@@ -518,11 +556,15 @@ class NothingApiHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/") or "/"
         if path == "/v1/ingestion/bundles":
+            if not self._prepare_write_cors():
+                return
             if not self._check_ingestion_rate_limit():
                 return
             self._post_ingestion_bundle()
             return
         if path == "/v1/billing/invoices":
+            if not self._prepare_write_cors():
+                return
             if not self._check_billing_rate_limit():
                 return
             self._post_billing_invoice()
@@ -542,6 +584,8 @@ class NothingApiHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/") or "/"
         if path == "/v1/ingestion/bundles":
+            if not self._prepare_write_cors():
+                return
             self.send_response(204)
             self.send_header("Allow", "POST, OPTIONS")
             self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
@@ -554,6 +598,8 @@ class NothingApiHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/v1/billing/invoices":
+            if not self._prepare_write_cors():
+                return
             self.send_response(204)
             self.send_header("Allow", "POST, OPTIONS")
             self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
