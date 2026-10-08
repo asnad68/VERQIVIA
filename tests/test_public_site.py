@@ -49,11 +49,12 @@ class PublicSiteSmokeTests(unittest.TestCase):
             page = path.read_text(encoding="utf-8")
             with self.subTest(page=path.name):
                 self.assertIn("Content-Security-Policy", page)
-                self.assertNotRegex(
-                    page,
-                    r"<script(?![^>]*\\bsrc=)[^>]*>",
+                script_tags = re.findall(r"<script[^>]*>", page, re.IGNORECASE)
+                self.assertTrue(
+                    all("src=" in tag.lower() for tag in script_tags),
+                    f"{path.name} contains an inline script tag",
                 )
-                self.assertNotRegex(page, r"<style(?:\\s|>)")
+                self.assertNotIn("<style", page.lower())
                 for match in re.finditer(
                     r'''(?:href|src)="([^"]+)"''',
                     page,
