@@ -261,11 +261,26 @@ def _parse_siwe(message: str) -> dict[str, str]:
         raise IdentityControlError("invalid SIWE blank line")
     if lines[4] != "":
         raise IdentityControlError("invalid SIWE separator")
-    fields: dict[str, str] = {"domain": normalize_domain(domain), "address": normalize_wallet_address(address)}
+    fields: dict[str, str] = {
+        "domain": normalize_domain(domain),
+        "address": normalize_wallet_address(address),
+    }
+    allowed_fields = {
+        "URI",
+        "Version",
+        "Chain ID",
+        "Nonce",
+        "Issued At",
+        "Expiration Time",
+    }
     for line in lines[5:]:
         if ": " not in line:
             raise IdentityControlError("invalid SIWE field")
         key, value = line.split(": ", 1)
+        if key not in allowed_fields:
+            raise IdentityControlError("unsupported SIWE field")
+        if key in fields:
+            raise IdentityControlError("duplicate SIWE field")
         fields[key] = value
     for required in ("URI", "Version", "Chain ID", "Nonce", "Issued At"):
         if required not in fields:
