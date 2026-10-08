@@ -68,7 +68,8 @@ The intended product is not a second trademark registry. It is a reusable verifi
 The product surfaces are:
 
 1. **Verify Web** for people.
-2. **Portable Verification Profile** for machine-readable exchange.
+2. **Portal / Pilot Workspace** as the company-facing entry point.
+3. **Portable Verification Profile** for machine-readable exchange.
 3. **API** for software and marketplaces.
 4. **◇ verification marker** as a human-facing entry point to the canonical record.
 5. **Domain discovery** through `.well-known/verqivia.json` as a pointer to the canonical record.
@@ -470,6 +471,7 @@ VERQIVIA/
 │   └── nothing_protocol.py
 ├── site/
 │   ├── index.html
+│   ├── portal.html
 │   ├── verify.html
 │   ├── 404.html
 │   ├── robots.txt
