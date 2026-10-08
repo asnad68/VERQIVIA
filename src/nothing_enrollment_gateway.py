@@ -334,31 +334,31 @@ def _public_identity(
             pass
 
         bundle = {"identities": [identity], "evidence": [], "verification_events": []}
-            raw = json.dumps(
-                bundle,
-                ensure_ascii=False,
-                sort_keys=True,
-                separators=(",", ":"),
-            ).encode("utf-8")
-            stored = store.ingest_bundle(
-                bundle,
-                actor=ACTOR,
-                idempotency_key=idempotency_key,
-                request_sha256=hashlib.sha256(raw).hexdigest(),
-                ingestion_id=str(uuid.uuid4()),
-                authorization_challenge_id=(
-                    str(authorization_challenge_id)
-                    if official
-                    else None
-                ),
-                authorization_registration_digest=(
-                    digest if official else None
-                ),
-                authorization_wallet_address=(
-                    wallet if official else None
-                ),
-            )
-            if getattr(stored, "replayed", False):
+        raw = json.dumps(
+            bundle,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        stored = store.ingest_bundle(
+            bundle,
+            actor=ACTOR,
+            idempotency_key=idempotency_key,
+            request_sha256=hashlib.sha256(raw).hexdigest(),
+            ingestion_id=str(uuid.uuid4()),
+            authorization_challenge_id=(
+                str(authorization_challenge_id)
+                if official
+                else None
+            ),
+            authorization_registration_digest=(
+                digest if official else None
+            ),
+            authorization_wallet_address=(
+                wallet if official else None
+            ),
+        )
+        if getattr(stored, "replayed", False):
                 return identity
             return identity
     raise EnrollmentValidationError("could not allocate a unique VERQIVIA ID")
