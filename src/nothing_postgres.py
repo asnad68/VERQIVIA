@@ -62,6 +62,16 @@ DEFAULT_SERIALIZATION_RETRIES = 4
 DEFAULT_RETRY_BACKOFF_SECONDS = 0.05
 
 
+def _parse_time(value: str):
+    normalized = value[:-1] + "+00:00" if value.endswith(("Z", "z")) else value
+    from datetime import datetime, timezone
+
+    parsed = datetime.fromisoformat(normalized)
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
 class PostgreSQLNotConfiguredError(StoreError):
     """Raised when the PostgreSQL driver or DSN is missing."""
 
