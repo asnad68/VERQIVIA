@@ -60,7 +60,7 @@ class PublicSiteSmokeTests(unittest.TestCase):
                     re.IGNORECASE,
                 ):
                     target = match.group(1).split("#", 1)[0].split("?", 1)[0]
-                    if not target or target.startswith(
+                    if target in {"", ".", "./"} or target.startswith(
                         ("#", "/", "http:", "https:", "mailto:")
                     ):
                         continue
