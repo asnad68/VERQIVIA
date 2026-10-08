@@ -1029,6 +1029,13 @@ class SQLiteNothingStore:
                 )
                 connection.execute("COMMIT")
                 return changed
+            except Exception:
+                try:
+                    connection.execute("ROLLBACK")
+                except Exception:
+                    pass
+                raise
+
     @staticmethod
     def _stored_identity(row: sqlite3.Row) -> StoredRecord:
         return StoredRecord(
