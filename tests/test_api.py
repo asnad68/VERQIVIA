@@ -166,6 +166,35 @@ class ReferenceApiHttpTests(unittest.TestCase):
         self.assertEqual(response.getheader("Access-Control-Allow-Methods"), "GET, OPTIONS")
         self.assertEqual(body, b"")
 
+    def test_write_options_rejects_unconfigured_browser_origin(self) -> None:
+        response, body = self.request(
+            "/v1/ingestion/bundles",
+            method="OPTIONS",
+            headers={"Origin": "https://attacker.example"},
+        )
+        self.assertEqual(response.status, 403)
+        self.assertEqual(json.loads(body)["code"], "ORIGIN_NOT_ALLOWED")
+
+    def test_write_options_allows_explicitly_configured_origin(self) -> None:
+        import src.nothing_api as api_module
+
+        old = api_module.WRITE_CORS_ALLOWED_ORIGINS
+        api_module.WRITE_CORS_ALLOWED_ORIGINS = ("https://portal.example",)
+        try:
+            response, body = self.request(
+                "/v1/ingestion/bundles",
+                method="OPTIONS",
+                headers={"Origin": "https://portal.example"},
+            )
+            self.assertEqual(response.status, 204)
+            self.assertEqual(
+                response.getheader("Access-Control-Allow-Origin"),
+                "https://portal.example",
+            )
+            self.assertEqual(body, b"")
+        finally:
+            api_module.WRITE_CORS_ALLOWED_ORIGINS = old
+
     def test_unknown_route_returns_404_problem(self) -> None:
         response, body = self.request("/v1/unknown")
         self.assertEqual(response.status, 404)
