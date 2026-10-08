@@ -190,7 +190,7 @@ def build_organization_controlled_identity(
         {
             "claim_id": claim_id_for(digest, 1),
             "statement": f"The organization-controlled record identifies the business/brand name '{draft.name}'.",
-            "status": "SOURCE-VERIFIED",
+            "status": "SELF-CLAIMED",
             "source": {
                 "type": "official_website" if draft.website else "domain_control",
                 "reference": draft.website or f"_nothing-challenge.{controlled_domain} (DNS TXT)",
@@ -208,7 +208,7 @@ def build_organization_controlled_identity(
             {
                 "claim_id": claim_id_for(digest, 2),
                 "statement": f"The registrant submitted the organization website {draft.website}.",
-                "status": "SOURCE-VERIFIED",
+                "status": "SELF-CLAIMED",
                 "source": {
                     "type": "official_website",
                     "reference": draft.website,
