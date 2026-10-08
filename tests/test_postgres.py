@@ -461,7 +461,7 @@ class PostgreSQLPersistenceIntegrationTests(unittest.TestCase):
         now_iso = now.isoformat().replace("+00:00", "Z")
         expires = (now + timedelta(minutes=5)).isoformat().replace("+00:00", "Z")
         registration_digest = "d" * 64
-        challenge_id = "pg-atomic-ingestion-challenge"
+        challenge_id = "33333333-3333-4333-8333-333333333333"
 
         self.store.create_auth_challenge(
             challenge_id=challenge_id,
