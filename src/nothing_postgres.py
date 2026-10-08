@@ -680,6 +680,43 @@ class PostgreSQLNothingStore:
 
     @_retry_serializable_method
     @_translate_database_errors
+    def get_payment_worker_checkpoint(
+        self,
+        worker_name: str,
+        account: str,
+    ) -> dict[str, Any] | None:
+        worker_name = str(worker_name or "").strip()
+        account = str(account or "").strip()
+        if not worker_name or not account:
+            raise ValueError("worker_name and account are required")
+        with self._pool.connection() as connection:
+            row = connection.execute(
+                """
+                SELECT worker_name, account, last_tx_hash,
+                       last_ledger_index, updated_at
+                FROM payment_worker_checkpoints
+                WHERE worker_name = %s AND account = %s
+                """,
+                (worker_name, account),
+            ).fetchone()
+        if row is None:
+            return None
+        updated_at = row["updated_at"]
+        if hasattr(updated_at, "isoformat"):
+            updated_at = updated_at.isoformat().replace("+00:00", "Z")
+        return {
+            "worker_name": row["worker_name"],
+            "account": row["account"],
+            "last_tx_hash": row["last_tx_hash"],
+            "last_ledger_index": (
+                int(row["last_ledger_index"])
+                if row["last_ledger_index"] is not None
+                else None
+            ),
+            "updated_at": updated_at,
+        }
+
+    @_translate_database_errors
     def set_payment_worker_checkpoint(
         self,
         worker_name: str,
