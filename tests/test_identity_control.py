@@ -1,5 +1,6 @@
 import unittest
 
+from src.nothing_enrollment import RegistrationDraft
 from src.nothing_identity_control import (
     IdentityControlError,
     build_domain_challenge,
@@ -10,6 +11,7 @@ from src.nothing_identity_control import (
     normalize_domain,
     verify_google_workspace_principal,
     wallet_principal,
+    build_organization_controlled_identity,
 )
 
 
@@ -64,6 +66,25 @@ class IdentityControlTests(unittest.TestCase):
         )
         self.assertFalse(decision.allowed)
         self.assertEqual(decision.state, "AUTHENTICATED_BUT_NOT_ORGANIZATION_CONTROLLED")
+
+    def test_organization_controlled_identity_is_accepted_by_core_validator(self):
+        from src.nothing_verify import validate_identity
+
+        draft = RegistrationDraft.from_mapping(
+            {
+                "name": "Apple",
+                "website": "https://www.apple.com",
+                "domains": ["apple.com"],
+            }
+        )
+        identity = build_organization_controlled_identity(
+            draft,
+            "NTH-000123",
+            authorization_method="google_oidc+dns_txt",
+            controlled_domain="apple.com",
+        )
+        validate_identity(identity)
+        self.assertEqual(identity["claims"][0]["source"]["type"], "domain_control")
 
     def test_wrong_domain_cannot_pass_apple_automatic_gate(self):
         principal = wallet_principal(
