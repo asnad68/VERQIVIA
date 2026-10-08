@@ -24,6 +24,18 @@ class EnrollmentTests(unittest.TestCase):
         self.assertNotEqual(first, second)
         self.assertRegex(second, r"^NTH-[0-9]{6}$")
 
+    def test_domains_and_channels_must_be_arrays_of_strings(self):
+        with self.assertRaises(EnrollmentValidationError):
+            RegistrationDraft.from_mapping({
+                "name": "Example",
+                "domains": "example.com",
+            })
+        with self.assertRaises(EnrollmentValidationError):
+            RegistrationDraft.from_mapping({
+                "name": "Example",
+                "channels": ["https://example.com", 123],
+            })
+
     def test_registration_is_self_claimed_not_verified(self):
         draft = RegistrationDraft.from_mapping({
             "name":"Example Company",
