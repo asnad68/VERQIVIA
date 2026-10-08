@@ -36,7 +36,6 @@ services:
         sync: false
       - key: NOTHING_AUTH_JWKS_URI
         sync: false
-      - key: NOTHING_AUTH_REQUIRED_SCOPE
         value: nothing:ingest
       - key: NOTHING_AUTH_ALLOWED_ALGORITHMS
         value: RS256
