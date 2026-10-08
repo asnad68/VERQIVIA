@@ -76,20 +76,35 @@ OFFICIAL_REGISTRATION_REQUIRED = os.getenv("NOTHING_OFFICIAL_REGISTRATION_REQUIR
 
 
 class RateLimiter:
-    def __init__(self) -> None:
+    def __init__(self, *, max_keys: int | None = None) -> None:
         self._lock = threading.Lock()
+        configured_max_keys = max_keys or int(
+            os.getenv("NOTHING_ENROLLMENT_RATE_LIMIT_MAX_KEYS", "10000")
+        )
+        self.max_keys = max(1, configured_max_keys)
         self._windows: dict[str, tuple[float, int]] = {}
+
+    def _prune_expired(self, now: float) -> None:
+        cutoff = now - RATE_WINDOW
+        for key, (started, _) in list(self._windows.items()):
+            if started <= cutoff:
+                self._windows.pop(key, None)
 
     def allow(self, key: str) -> bool:
         now = time.monotonic()
+        normalized_key = str(key)
         with self._lock:
-            started, count = self._windows.get(key, (now, 0))
+            if normalized_key not in self._windows and len(self._windows) >= self.max_keys:
+                self._prune_expired(now)
+                if len(self._windows) >= self.max_keys:
+                    return False
+            started, count = self._windows.get(normalized_key, (now, 0))
             if now - started >= RATE_WINDOW:
                 started, count = now, 0
             if count >= RATE_MAX:
-                self._windows[key] = (started, count)
+                self._windows[normalized_key] = (started, count)
                 return False
-            self._windows[key] = (started, count + 1)
+            self._windows[normalized_key] = (started, count + 1)
             return True
 
 
