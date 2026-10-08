@@ -1817,6 +1817,9 @@ class SQLiteNothingStore:
         request_sha256: str,
         ingestion_id: str,
         recorded_at: str | None = None,
+        authorization_challenge_id: str | None = None,
+        authorization_registration_digest: str | None = None,
+        authorization_wallet_address: str | None = None,
     ) -> IngestionResult:
         """Atomically validate, persist and deduplicate an authenticated bundle."""
         if not isinstance(actor, str) or not actor.strip():
