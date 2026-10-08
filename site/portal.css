@@ -1,0 +1,14 @@
+.portal-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.portal-step{border-top:1px solid var(--line);padding-top:18px;margin-top:22px}
+.portal-form{display:grid;gap:12px}
+.portal-form label{font-size:.85rem;font-weight:700}
+.portal-form textarea,.portal-form select{width:100%;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:13px 14px;color:var(--ink);font:inherit}
+.portal-form textarea{resize:vertical}
+.claim-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.claim-row:last-child{border-bottom:0}
+.claim-row small{display:block;color:var(--muted)}
+.portal-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.portal-preview{background:#111;color:#fff;border-radius:16px;padding:20px;white-space:pre-wrap;overflow-wrap:anywhere}
+.portal-preview code{color:#fff}
+.portal-status{margin-top:12px}
+@media(max-width:820px){.portal-grid{grid-template-columns:1fr}}
