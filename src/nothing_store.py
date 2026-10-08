@@ -138,6 +138,14 @@ class NothingStore(Protocol):
     ) -> IngestionResult:
         ...
 
+    def get_ingestion_result(
+        self,
+        *,
+        actor: str,
+        idempotency_key: str,
+    ) -> IngestionResult | None:
+        ...
+    
     def create_auth_challenge(
         self,
         *,
@@ -708,6 +716,33 @@ class SQLiteNothingStore:
             return True
         except sqlite3.Error:
             return False
+
+    def get_ingestion_result(
+        self,
+        *,
+        actor: str,
+        idempotency_key: str,
+    ) -> IngestionResult | None:
+        actor = str(actor or "").strip()
+        idempotency_key = str(idempotency_key or "").strip()
+        if not actor or not idempotency_key:
+            raise ValueError("actor and idempotency_key are required")
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT request_sha256, result_json, recorded_at
+                FROM ingestion_idempotency
+                WHERE actor = ? AND idempotency_key = ?
+                """,
+                (actor, idempotency_key),
+            ).fetchone()
+        if row is None:
+            return None
+        return IngestionResult(
+            data=json.loads(row["result_json"]),
+            recorded_at=row["recorded_at"],
+            replayed=True,
+        )
 
     def create_auth_challenge(
         self,
