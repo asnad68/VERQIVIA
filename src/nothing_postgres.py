@@ -336,7 +336,7 @@ class PostgreSQLNothingStore:
                             challenge_id, purpose, nonce, wallet_address, domain, uri,
                             chain_id, message_sha256, issued_at, expires_at, created_at
                         ) VALUES (
-                            %s, %s, %s, %s, %s, %s, %s, %s::timestamptz,
+                            %s, %s, %s, %s, %s, %s, %s, %s,
                             %s::timestamptz, %s::timestamptz, %s::timestamptz
                         )
                         """,
