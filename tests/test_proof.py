@@ -81,6 +81,30 @@ class ProofTests(unittest.TestCase):
         self.assertFalse(result["valid"])
         self.assertFalse(result["checks"]["issuer_key"])
 
+    def test_proof_created_before_key_validity_fails(self) -> None:
+        registry = copy.deepcopy(self.registry)
+        registry["issuers"][0]["keys"][0]["valid_from"] = "2026-09-28T00:00:00Z"
+        result = verify_envelope(
+            self.envelope,
+            self.identity,
+            registry,
+            at_time="2026-10-01T00:00:00Z",
+        )
+        self.assertFalse(result["valid"])
+        self.assertFalse(result["checks"]["issuer_key"])
+
+    def test_proof_created_after_key_expiry_fails(self) -> None:
+        registry = copy.deepcopy(self.registry)
+        registry["issuers"][0]["keys"][0]["valid_until"] = "2026-09-26T23:59:59Z"
+        result = verify_envelope(
+            self.envelope,
+            self.identity,
+            registry,
+            at_time="2026-10-01T00:00:00Z",
+        )
+        self.assertFalse(result["valid"])
+        self.assertFalse(result["checks"]["issuer_key"])
+
     def test_future_key_window_fails_at_observed_time(self) -> None:
         registry = copy.deepcopy(self.registry)
         registry["issuers"][0]["keys"][0]["valid_from"] = "2026-10-01T00:00:00Z"
