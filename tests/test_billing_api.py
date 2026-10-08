@@ -211,6 +211,32 @@ class BillingApiTests(unittest.TestCase):
         self.assertEqual(data["status"], "open")
         self.assertTrue(data["expires_at"].endswith("Z"))
 
+    def test_billing_service_is_disabled_by_default(self):
+        import src.nothing_api as api_module
+        from pathlib import Path
+        import tempfile
+
+        tempdir = tempfile.TemporaryDirectory()
+        store = SQLiteNothingStore(Path(tempdir.name) / "nothing.db")
+        old = api_module.BILLING_ENABLED
+        try:
+            api_module.BILLING_ENABLED = False
+            server = build_server(
+                "127.0.0.1",
+                0,
+                store=store,
+                auth_mode="static-bearer",
+                ingestion_token="ingestion-token",
+            )
+            try:
+                self.assertIsNone(server.billing_service)
+            finally:
+                server.server_close()
+        finally:
+            api_module.BILLING_ENABLED = old
+            store.close()
+            tempdir.cleanup()
+
     def test_missing_billing_authenticator_fails_closed(self):
         original = self.server.billing_authenticator
         self.server.billing_authenticator = None
