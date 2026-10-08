@@ -293,6 +293,75 @@ class AuthenticatedWriteIngestionTests(unittest.TestCase):
             "CONFLICT",
         )
 
+    def test_authorized_ingestion_rolls_back_authorization_on_post_consume_failure(self):
+        from datetime import datetime, timedelta, timezone
+
+        now = datetime.now(timezone.utc).replace(microsecond=0)
+        now_iso = now.isoformat().replace("+00:00", "Z")
+        expires = (now + timedelta(minutes=5)).isoformat().replace("+00:00", "Z")
+        registration_digest = "b" * 64
+        challenge_id = "atomic-ingestion-challenge"
+
+        self.store.create_auth_challenge(
+            challenge_id=challenge_id,
+            purpose="google_oidc",
+            nonce="atomic-nonce-1234",
+            wallet_address=None,
+            domain="example.com",
+            uri="https://example.com",
+            chain_id=1,
+            message_sha256="a" * 64,
+            issued_at=now_iso,
+            expires_at=expires,
+            actor="test-auth",
+        )
+        self.store.authorize_google_challenge(
+            challenge_id,
+            nonce="atomic-nonce-1234",
+            message_sha256="a" * 64,
+            authorization={
+                "registration_digest": registration_digest,
+                "domain": "example.com",
+            },
+            now=now_iso,
+            actor="test-auth",
+        )
+
+        identity = self.identity_bundle()["identities"][0]
+        identity["nothing_id"] = "NTH-654321"
+        bundle = {
+            "identities": [identity],
+            "evidence": [],
+            "verification_events": [],
+        }
+
+        original = self.store._consume_auth_authorization_in_connection
+
+        def consume_then_fail(connection, challenge, **kwargs):
+            original(connection, challenge, **kwargs)
+            raise RuntimeError("forced post-consume failure")
+
+        self.store._consume_auth_authorization_in_connection = consume_then_fail
+        try:
+            with self.assertRaises(RuntimeError):
+                self.store.ingest_bundle(
+                    bundle,
+                    actor="test-atomic",
+                    idempotency_key="atomic-ingestion",
+                    request_sha256="c" * 64,
+                    ingestion_id="atomic-ingestion-id",
+                    authorization_challenge_id=challenge_id,
+                    authorization_registration_digest=registration_digest,
+                    authorization_wallet_address=None,
+                )
+        finally:
+            self.store._consume_auth_authorization_in_connection = original
+
+        challenge = self.store.get_auth_challenge(challenge_id)
+        self.assertIsNone(challenge["registration_consumed_at"])
+        with self.assertRaises(Exception):
+            self.store.get_identity("NTH-654321")
+
     def test_duplicate_json_property_is_rejected(self):
         body = (
             b'{"identities":[],"identities":[],"evidence":[],'
