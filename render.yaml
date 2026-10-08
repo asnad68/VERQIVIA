@@ -51,7 +51,7 @@ services:
       - key: NOTHING_PUBLIC_API_ORIGIN
         sync: false
       - key: NOTHING_TRUST_PROXY_HEADERS
-        value: false
+        value: "false"
       - key: NOTHING_IDENTITY_CONTROL_ENABLED
         value: "false"
       - key: NOTHING_WALLET_AUTH_ENABLED
