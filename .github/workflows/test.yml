@@ -29,6 +29,9 @@ jobs:
           node --check site/register.js
           node --check site/portal.js
           node --check site/assets/app.js
+      - name: Validate deployment YAML syntax
+        run: ruby -e 'require "yaml"; YAML.load_file("render.yaml")'
+
       - name: Compile Python sources
         run: python -m compileall -q src scripts tests
       - name: Run repository preflight
