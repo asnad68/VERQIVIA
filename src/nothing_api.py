@@ -588,6 +588,9 @@ class NothingApiHandler(BaseHTTPRequestHandler):
                 return
             self.send_response(204)
             self.send_header("Allow", "POST, OPTIONS")
+            if getattr(self, "_cors_origin", None):
+                self.send_header("Access-Control-Allow-Origin", self._cors_origin)
+                self.send_header("Vary", "Origin")
             self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
             self.send_header(
                 "Access-Control-Allow-Headers",
@@ -602,6 +605,9 @@ class NothingApiHandler(BaseHTTPRequestHandler):
                 return
             self.send_response(204)
             self.send_header("Allow", "POST, OPTIONS")
+            if getattr(self, "_cors_origin", None):
+                self.send_header("Access-Control-Allow-Origin", self._cors_origin)
+                self.send_header("Vary", "Origin")
             self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
             self.send_header(
                 "Access-Control-Allow-Headers",
