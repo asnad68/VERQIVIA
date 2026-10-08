@@ -44,6 +44,12 @@ class EnrollmentGatewayTests(unittest.TestCase):
         )
         self.assertEqual(authorization["domain"], "apple.com")
 
+    def test_rate_limiter_bounds_unique_key_memory(self):
+        limiter = gateway.RateLimiter(max_keys=2)
+        self.assertTrue(limiter.allow("a"))
+        self.assertTrue(limiter.allow("b"))
+        self.assertFalse(limiter.allow("c"))
+
     def test_safe_json_rejects_duplicate_keys(self):
         body = b'{"registration":{"name":"Example"},"registration":{"name":"Attacker"}}'
         with self.assertRaises(gateway.EnrollmentValidationError):
