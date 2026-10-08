@@ -262,6 +262,52 @@ class IdentityControlTests(unittest.TestCase):
                 jwks_client=FakeJwks(),
             )
 
+    def test_google_multi_audience_requires_matching_authorized_party(self):
+        import jwt
+        from datetime import datetime, timedelta, timezone
+        from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat, NoEncryption
+        from cryptography.hazmat.primitives.asymmetric import rsa
+
+        private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        public_pem = private_key.public_key().public_bytes(
+            Encoding.PEM,
+            __import__("cryptography").hazmat.primitives.serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+
+        class FakeSigningKey:
+            key = public_pem
+
+        class FakeJwks:
+            def get_signing_key_from_jwt(self, token):
+                return FakeSigningKey()
+
+        now = datetime.now(timezone.utc)
+        token = jwt.encode(
+            {
+                "iss": "https://accounts.google.com",
+                "sub": "google-multi-aud",
+                "aud": ["client-test", "other-client"],
+                "azp": "other-client",
+                "iat": int(now.timestamp()),
+                "exp": int((now + timedelta(minutes=5)).timestamp()),
+                "email": "admin@apple.com",
+                "email_verified": True,
+                "hd": "apple.com",
+            },
+            private_key.private_bytes(
+                Encoding.PEM, PrivateFormat.PKCS8, NoEncryption()
+            ),
+            algorithm="RS256",
+            headers={"kid": "test"},
+        )
+        with self.assertRaises(IdentityControlError):
+            __import__("src.nothing_identity_control", fromlist=["verify_google_id_token"]).verify_google_id_token(
+                token,
+                client_id="client-test",
+                expected_domain="apple.com",
+                jwks_client=FakeJwks(),
+            )
+
     def test_idn_domain_normalizes_to_ascii(self):
         self.assertEqual(normalize_domain("münich.example"), "xn--mnich-kva.example")
 
