@@ -16,6 +16,7 @@ Repository and product surfaces are substantially prepared. Public production re
 | --- | --- | --- | --- |
 | Identity / claim / evidence core | READY | Repository tests + schemas + resolver | No |
 | Verify Web | READY FOR PILOT | Public demo returns expected record and cryptographic proof | No |
+| Portal / pilot workspace | READY FOR PILOT | Public workflow entry point routes companies to identity, pilot, verification and integration surfaces | No |
 | Cryptographic proof | READY FOR PILOT | Valid Ed25519 demo proof + registry lifecycle checks | No |
 | Portable profile | READY FOR PILOT | Schema/OpenAPI/profile parity | No |
 | API contract | READY FOR PILOT | OpenAPI + reference implementation + tests | No |
