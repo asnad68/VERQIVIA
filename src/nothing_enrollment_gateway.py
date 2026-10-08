@@ -103,9 +103,23 @@ def _json_bytes(payload: dict[str, Any]) -> bytes:
 def _safe_json(body: bytes) -> dict[str, Any]:
     if len(body) > MAX_BODY:
         raise EnrollmentValidationError("request body is too large")
+
+    def reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+        result: dict[str, Any] = {}
+        for key, value in pairs:
+            if key in result:
+                raise EnrollmentValidationError(f"duplicate JSON property: {key}")
+            result[key] = value
+        return result
+
     try:
-        value = json.loads(body.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        value = json.loads(
+            body.decode("utf-8"),
+            object_pairs_hook=reject_duplicate_keys,
+        )
+    except UnicodeDecodeError as exc:
+        raise EnrollmentValidationError("request body must be valid UTF-8 JSON") from exc
+    except json.JSONDecodeError as exc:
         raise EnrollmentValidationError("request body must be valid JSON") from exc
     if not isinstance(value, dict):
         raise EnrollmentValidationError("request body must be a JSON object")
