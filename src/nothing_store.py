@@ -132,6 +132,9 @@ class NothingStore(Protocol):
         request_sha256: str,
         ingestion_id: str,
         recorded_at: str | None = None,
+        authorization_challenge_id: str | None = None,
+        authorization_registration_digest: str | None = None,
+        authorization_wallet_address: str | None = None,
     ) -> IngestionResult:
         ...
 
@@ -191,6 +194,92 @@ class NothingStore(Protocol):
         actor: str = "auth",
     ) -> bool:
         ...
+
+    def _consume_auth_authorization_in_connection(
+        self,
+        connection: sqlite3.Connection,
+        challenge_id: str,
+        *,
+        registration_digest: str,
+        wallet_address: str | None,
+        now: str,
+        actor: str,
+    ) -> bool:
+        challenge_id = str(challenge_id or "").strip()
+        registration_digest = str(registration_digest or "").strip().lower()
+        wallet_address = str(wallet_address or "").strip().lower() if wallet_address else None
+        now = str(now).strip()
+        actor = str(actor).strip()
+        if not challenge_id or len(registration_digest) != 64 or not now or not actor:
+            raise ValueError("invalid authentication authorization consumption")
+
+        row = connection.execute(
+            """
+            SELECT purpose, wallet_address, authorization_status,
+                   authorization_json, registration_consumed_at, expires_at
+            FROM auth_challenges
+            WHERE challenge_id = ?
+            """,
+            (challenge_id,),
+        ).fetchone()
+        if row is None:
+            raise NotFoundError(challenge_id)
+
+        authorization = (
+            json.loads(row["authorization_json"])
+            if row["authorization_json"]
+            else {}
+        )
+        wallet_ok = (
+            row["purpose"] == "google_oidc"
+            or (
+                row["purpose"] == "wallet_siwe"
+                and wallet_address is not None
+                and str(row["wallet_address"] or "").lower() == wallet_address
+            )
+        )
+        valid = (
+            row["authorization_status"] == "AUTHORIZED"
+            and row["registration_consumed_at"] is None
+            and wallet_ok
+            and str(authorization.get("registration_digest", "")).lower() == registration_digest
+            and _parse_time(str(row["expires_at"])) > _parse_time(now)
+        )
+        if not valid:
+            return False
+
+        cursor = connection.execute(
+            """
+            UPDATE auth_challenges
+            SET registration_consumed_at = ?
+            WHERE challenge_id = ?
+              AND authorization_status = 'AUTHORIZED'
+              AND registration_consumed_at IS NULL
+            """,
+            (now, challenge_id),
+        )
+        changed = cursor.rowcount == 1
+        if changed:
+            connection.execute(
+                """
+                INSERT INTO audit_log(
+                    recorded_at, actor, action, record_type, record_id, details_json
+                ) VALUES (?, ?, 'CONSUME', 'auth_challenge', ?, ?)
+                """,
+                (
+                    now,
+                    actor,
+                    challenge_id,
+                    json.dumps(
+                        {
+                            "registration_consumed": True,
+                            "registration_digest": registration_digest,
+                        },
+                        separators=(",", ":"),
+                    ),
+                ),
+            )
+        return changed
 
     def consume_auth_authorization(
         self,
@@ -930,71 +1019,16 @@ class SQLiteNothingStore:
         with self._connect() as connection:
             try:
                 connection.execute("BEGIN IMMEDIATE")
-                row = connection.execute(
-                    """
-                    SELECT purpose, wallet_address, authorization_status,
-                           authorization_json, registration_consumed_at, expires_at
-                    FROM auth_challenges
-                    WHERE challenge_id = ?
-                    """,
-                    (challenge_id,),
-                ).fetchone()
-                if row is None:
-                    connection.execute("ROLLBACK")
-                    raise NotFoundError(challenge_id)
-                authorization = json.loads(row["authorization_json"]) if row["authorization_json"] else {}
-                wallet_ok = (
-                    row["purpose"] == "google_oidc"
-                    or (
-                        row["purpose"] == "wallet_siwe"
-                        and wallet_address is not None
-                        and str(row["wallet_address"] or "").lower() == wallet_address
-                    )
+                changed = self._consume_auth_authorization_in_connection(
+                    connection,
+                    challenge_id,
+                    registration_digest=registration_digest,
+                    wallet_address=wallet_address,
+                    now=now,
+                    actor=actor,
                 )
-                valid = (
-                    row["authorization_status"] == "AUTHORIZED"
-                    and row["registration_consumed_at"] is None
-                    and wallet_ok
-                    and str(authorization.get("registration_digest", "")).lower() == registration_digest
-                    and _parse_time(str(row["expires_at"])) > _parse_time(now)
-                )
-                if not valid:
-                    connection.execute("ROLLBACK")
-                    return False
-                cursor = connection.execute(
-                    """
-                    UPDATE auth_challenges
-                    SET registration_consumed_at = ?
-                    WHERE challenge_id = ?
-                      AND authorization_status = 'AUTHORIZED'
-                      AND registration_consumed_at IS NULL
-                    """,
-                    (now, challenge_id),
-                )
-                changed = cursor.rowcount == 1
-                if changed:
-                    connection.execute(
-                        """
-                        INSERT INTO audit_log(
-                            recorded_at, actor, action, record_type, record_id, details_json
-                        ) VALUES (?, ?, 'CONSUME', 'auth_challenge', ?, ?)
-                        """,
-                        (
-                            now,
-                            actor,
-                            challenge_id,
-                            json.dumps({"registration_consumed": True}, separators=(",", ":")),
-                        ),
-                    )
                 connection.execute("COMMIT")
                 return changed
-            except Exception:
-                try:
-                    connection.execute("ROLLBACK")
-                except Exception:
-                    pass
-                raise
-
     @staticmethod
     def _stored_identity(row: sqlite3.Row) -> StoredRecord:
         return StoredRecord(
@@ -2229,6 +2263,24 @@ class SQLiteNothingStore:
                         ),
                     ),
                 )
+
+                if authorization_challenge_id is not None:
+                    if authorization_registration_digest is None:
+                        raise ValueError(
+                            "authorization_registration_digest is required with authorization_challenge_id"
+                        )
+                    consumed = self._consume_auth_authorization_in_connection(
+                        connection,
+                        authorization_challenge_id,
+                        registration_digest=authorization_registration_digest,
+                        wallet_address=authorization_wallet_address,
+                        now=recorded,
+                        actor=actor,
+                    )
+                    if not consumed:
+                        raise ConflictError(
+                            "official registration authorization could not be consumed"
+                        )
 
                 connection.execute(
                     """
