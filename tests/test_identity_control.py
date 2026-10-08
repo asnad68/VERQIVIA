@@ -160,6 +160,21 @@ class IdentityControlTests(unittest.TestCase):
         self.assertIn("verqivia.example wants you to sign in", message)
         self.assertIn("Nonce: ABCDEFGH1234", message)
 
+    def test_siwe_parser_rejects_duplicate_or_unknown_fields(self):
+        import src.nothing_identity_control as module
+        message = build_siwe_message(
+            domain="verqivia.example",
+            address="0x1111111111111111111111111111111111111111",
+            uri="https://verqivia.example/",
+            chain_id=1,
+            nonce="ABCDEFGH1234",
+            issued_at="2026-10-02T20:00:00Z",
+        )
+        with self.assertRaises(IdentityControlError):
+            module._parse_siwe(message + "\nNonce: DIFFERENT123")
+        with self.assertRaises(IdentityControlError):
+            module._parse_siwe(message + "\nUnexpected: value")
+
     def test_signed_domain_challenge_expires_and_rejects_tampering(self):
         from datetime import datetime, timedelta, timezone
         from src.nothing_identity_control import issue_domain_challenge_token, verify_domain_challenge_token
