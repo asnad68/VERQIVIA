@@ -35,6 +35,16 @@ class ReferenceApiHttpTests(unittest.TestCase):
         finally:
             connection.close()
 
+    def test_rate_limiter_bounds_unique_key_memory(self) -> None:
+        from src.nothing_api import RateLimiter
+
+        limiter = RateLimiter(60, 2, max_keys=2)
+        self.assertTrue(limiter.allow("a", now=0))
+        self.assertTrue(limiter.allow("b", now=0))
+        self.assertFalse(limiter.allow("c", now=0))
+        self.assertTrue(limiter.allow("c", now=61))
+        self.assertEqual(len(limiter._windows), 1)
+
     def test_identity_endpoint_returns_resolved_graph(self) -> None:
         response, body = self.request("/v1/identity/NTH-000001")
         self.assertEqual(response.status, 200)
