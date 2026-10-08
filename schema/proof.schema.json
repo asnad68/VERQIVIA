@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/asnad68/NOTHING/blob/main/schema/proof.schema.json",
-  "title": "NOTHING Cryptographic Proof Envelope",
-  "description": "NOTHING v0.1 detached Ed25519 proof envelope for an exact protocol resource.",
+  "$id": "https://github.com/asnad68/VERQIVIA/blob/main/schema/proof.schema.json",
+  "title": "VERQIVIA Cryptographic Proof Envelope",
+  "description": "VERQIVIA v0.1 detached Ed25519 proof envelope for an exact protocol resource.",
   "type": "object",
   "additionalProperties": false,
   "required": ["envelope_id", "version", "resource_type", "resource_id", "resource_hash", "issuer", "proof"],
