@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/asnad68/NOTHING/blob/main/schema/issuer-registry.schema.json",
-  "title": "NOTHING Issuer Registry",
+  "$id": "https://github.com/asnad68/VERQIVIA/blob/main/schema/issuer-registry.schema.json",
+  "title": "VERQIVIA Issuer Registry",
   "description": "Registry of keys accepted for NOTHING v0.1 proof verification.",
   "type": "object",
   "additionalProperties": false,
