@@ -22,7 +22,6 @@ class PublicSiteSmokeTests(unittest.TestCase):
         page = self.read("portal.html")
         self.assertIn("browser-only pilot workspace prototype", page)
         self.assertIn("does not create an official production identity", page)
-        self.assertIn("does not", page)
         self.assertNotIn("Pay registration fee", page)
 
     def test_core_public_pages_link_to_portal(self) -> None:
