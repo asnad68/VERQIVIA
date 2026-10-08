@@ -426,20 +426,16 @@ class NothingApiHandler(BaseHTTPRequestHandler):
         sys.stdout.flush()
 
     def log_message(self, fmt: str, *args: Any) -> None:
-        # Avoid logging Authorization, cookies, request bodies, or query strings.
-        try:
-            message = fmt % args
-        except Exception:
-            message = fmt
-        request_target = self.path.split("?", 1)[0]
-        if self.path != request_target:
-            message = message.replace(self.path, request_target)
+        # Never copy BaseHTTPRequestHandler's raw request line into logs.
+        # Malformed request lines may contain credentials or request bodies.
+        request_target = getattr(self, "path", "") or "-"
+        request_target = request_target.split("?", 1)[0]
         record = {
             "event": "http_message",
             "request_id": self._request_id(),
-            "method": self.command,
+            "method": getattr(self, "command", None),
             "path": request_target,
-            "message": message,
+            "message": "HTTP parser or handler message suppressed",
         }
         sys.stdout.write(json.dumps(record, sort_keys=True) + "\\n")
         sys.stdout.flush()
@@ -1019,8 +1015,13 @@ class NothingApiHandler(BaseHTTPRequestHandler):
                 ),
                 active_only=True,
             )
-        except (PaymentValidationError, StoreError) as exc:
-            self._send_problem(503, "BILLING_UNAVAILABLE", str(exc), instance)
+        except (PaymentValidationError, StoreError):
+            self._send_problem(
+                503,
+                "BILLING_UNAVAILABLE",
+                "Billing data is temporarily unavailable.",
+                instance,
+            )
             return
 
         self._send(
@@ -1286,11 +1287,11 @@ class NothingApiHandler(BaseHTTPRequestHandler):
                 "The requested API resource does not exist.",
                 instance,
             )
-        except (OSError, json.JSONDecodeError, ValidationError, RelationshipError, StoreError, ProofError) as exc:
+        except (OSError, json.JSONDecodeError, ValidationError, RelationshipError, StoreError, ProofError):
             self._send_problem(
                 503,
                 "TEMPORARILY_UNAVAILABLE",
-                f"Verification data could not be resolved: {exc}",
+                "Verification data is temporarily unavailable.",
                 instance,
             )
 
@@ -1419,11 +1420,11 @@ class NothingApiHandler(BaseHTTPRequestHandler):
                 instance,
             )
             return
-        except (ValidationError, RelationshipError, StoreError, ValueError) as exc:
+        except (ValidationError, RelationshipError, StoreError, ValueError):
             self._send_problem(
                 503,
                 "PROFILE_UNAVAILABLE",
-                f"The portable verification profile could not be built: {exc}",
+                "The portable verification profile is temporarily unavailable.",
                 instance,
             )
             return
