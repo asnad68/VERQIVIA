@@ -16,12 +16,18 @@ class EnrollmentValidationError(ValueError):
     pass
 
 
-def _clean_lines(values):
+def _clean_lines(values, field):
+    if values is None:
+        return []
+    if not isinstance(values, list):
+        raise EnrollmentValidationError(f"{field} must be an array")
     out = []
-    for value in values or []:
-        value = str(value).strip()
-        if value and value not in out:
-            out.append(value)
+    for value in values:
+        if not isinstance(value, str):
+            raise EnrollmentValidationError(f"{field} must contain only strings")
+        cleaned = value.strip()
+        if cleaned and cleaned not in out:
+            out.append(cleaned)
     return out
 
 
@@ -81,8 +87,8 @@ class RegistrationDraft:
             str(payload.get("website", "")).strip(),
             "website",
         )
-        domains = _clean_lines(payload.get("domains", []))
-        channels = _clean_lines(payload.get("channels", []))
+        domains = _clean_lines(payload.get("domains", []), "domains")
+        channels = _clean_lines(payload.get("channels", []), "channels")
         if len(domains) > 50:
             raise EnrollmentValidationError("too many domains")
         if len(channels) > 50:
