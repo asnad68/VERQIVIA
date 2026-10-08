@@ -395,13 +395,33 @@ def verify_envelope(
 
     signature = _b64url_decode(envelope["proof"]["signature"], "proof.signature")
     created = _validate_datetime(envelope["proof"]["created"], "proof.created")
+    valid_from = _validate_datetime(key["valid_from"], "key.valid_from") if key.get("valid_from") else None
+    valid_until = _validate_datetime(key["valid_until"], "key.valid_until") if key.get("valid_until") else None
+
+    if valid_from and created < valid_from:
+        return {
+            "valid": False,
+            "checks": {
+                "structure": True, "resource_hash": True,
+                "issuer_key": False, "signature": False,
+            },
+            "reason": "proof was created before the issuer key became valid",
+        }
+
+    if valid_until and created > valid_until:
+        return {
+            "valid": False,
+            "checks": {
+                "structure": True, "resource_hash": True,
+                "issuer_key": False, "signature": False,
+            },
+            "reason": "proof was created after the issuer key expired",
+        }
 
     if at_time is not None:
         observed = _validate_datetime(at_time, "at_time")
-        valid_from = key.get("valid_from")
-        valid_until = key.get("valid_until")
 
-        if valid_from and observed < _validate_datetime(valid_from, "key.valid_from"):
+        if valid_from and observed < valid_from:
             return {
                 "valid": False,
                 "checks": {
@@ -411,7 +431,7 @@ def verify_envelope(
                 "reason": "issuer key was not yet valid at the requested time",
             }
 
-        if valid_until and observed > _validate_datetime(valid_until, "key.valid_until"):
+        if valid_until and observed > valid_until:
             return {
                 "valid": False,
                 "checks": {
