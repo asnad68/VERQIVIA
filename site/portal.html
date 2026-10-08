@@ -4,13 +4,28 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'">
-  <meta name="description" content="VERQIVIA Portal — pilot workspace for organizations preparing identity, claims, evidence and verification workflows.">
+  <meta name="description" content="VERQIVIA Portal — pilot workspace prototype for preparing business identity and verification workflows.">
   <meta property="og:title" content="VERQIVIA Portal — Pilot Workspace">
   <meta property="og:description" content="Prepare a controlled business identity and verification pilot without exposing private production data in the public prototype.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://asnad68.github.io/VERQIVIA/portal.html">
   <title>Portal — VERQIVIA</title>
   <link rel="stylesheet" href="./assets/styles.css">
+  <style>
+    .portal-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .portal-step{border-top:1px solid var(--line);padding-top:18px;margin-top:22px}
+    .portal-form{display:grid;gap:12px}
+    .portal-form label{font-size:.85rem;font-weight:700}
+    .portal-form textarea,.portal-form select{width:100%;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:13px 14px;color:var(--ink);font:inherit}
+    .portal-form textarea{resize:vertical}
+    .claim-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+    .claim-row:last-child{border-bottom:0}
+    .claim-row small{display:block;color:var(--muted)}
+    .portal-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+    .portal-preview{background:#111;color:#fff;border-radius:16px;padding:20px;white-space:pre-wrap;overflow-wrap:anywhere}
+    .portal-preview code{color:#fff}
+    .portal-status{margin-top:12px}
+    @media(max-width:820px){.portal-grid{grid-template-columns:1fr}}
+  </style>
 </head>
 <body>
 <header class="topbar">
@@ -29,71 +44,91 @@
 
 <main>
   <section class="hero shell">
-    <div class="eyebrow">VERQIVIA PILOT WORKSPACE</div>
-    <h1>A company should manage its identity away from GitHub.</h1>
-    <p class="lead">This public prototype is the front door for a future organization portal. It explains the workflow, keeps the public demo safe, and routes pilot participants to the appropriate identity, verification and integration surfaces.</p>
-    <div class="input-row hero-action-row">
-      <a class="button" href="./register.html">Prepare an identity →</a>
-      <a class="button secondary" href="./verify.html?id=NTH-000001">Inspect the demo</a>
+    <div class="eyebrow">VERQIVIA PILOT WORKSPACE · PROTOTYPE</div>
+    <h1>Prepare one business identity and its verification plan.</h1>
+    <p class="lead">This is a browser-only pilot workspace prototype. It creates a local draft for review; it does not create an official production identity, authenticate a company or store customer data on VERQIVIA servers.</p>
+  </section>
+
+  <section class="shell portal-grid">
+    <div class="panel">
+      <div class="eyebrow">1 · IDENTITY</div>
+      <h2>Company profile</h2>
+      <form id="portal-form" class="portal-form">
+        <label for="company-name">Business / brand name</label>
+        <input id="company-name" maxlength="180" autocomplete="organization" required>
+
+        <label for="company-type">Type</label>
+        <select id="company-type">
+          <option value="business">Business</option>
+          <option value="brand">Brand</option>
+          <option value="digital_channel">Digital channel</option>
+        </select>
+
+        <label for="official-website">Official website</label>
+        <input id="official-website" maxlength="500" inputmode="url" placeholder="https://example.com">
+
+        <label for="official-domain">Official domain</label>
+        <input id="official-domain" maxlength="253" placeholder="example.com">
+
+        <label for="public-description">Public description</label>
+        <textarea id="public-description" rows="4" maxlength="2000" placeholder="Factual description for the pilot record."></textarea>
+
+        <div class="portal-step">
+          <div class="eyebrow">2 · CLAIMS</div>
+          <h2>Select pilot claims</h2>
+          <div class="claim-row"><label><input type="checkbox" value="official_domain"> Official domain <small>Which domain is controlled by the organization?</small></label></div>
+          <div class="claim-row"><label><input type="checkbox" value="official_website"> Official website <small>Which public website should be linked to the identity?</small></label></div>
+          <div class="claim-row"><label><input type="checkbox" value="authorized_representative"> Authorized representative <small>Who may act for the organization?</small></label></div>
+          <div class="claim-row"><label><input type="checkbox" value="business_relationship"> Business relationship <small>Which relationship needs verification?</small></label></div>
+        </div>
+
+        <div class="portal-step">
+          <div class="eyebrow">3 · EVIDENCE</div>
+          <h2>Evidence boundary</h2>
+          <label for="evidence-notes">What evidence can be checked?</label>
+          <textarea id="evidence-notes" rows="5" maxlength="3000" placeholder="Example: company website, domain DNS, public corporate registry, signed authorization. Do not paste passwords or private keys."></textarea>
+        </div>
+
+        <div class="portal-actions">
+          <button type="submit">Build pilot draft</button>
+          <button type="button" class="button secondary" id="clear-draft">Clear</button>
+        </div>
+        <div id="portal-status" class="status status-neutral portal-status">Draft not created.</div>
+      </form>
     </div>
-    <p class="note note-spaced">Prototype boundary: no private production records, real customer credentials or production authentication are handled on this static page.</p>
-  </section>
 
-  <section class="feature-grid shell" aria-label="Organization portal workflow">
-    <article class="feature">
-      <span class="feature-number">01</span>
-      <h2>Identity</h2>
-      <p>Prepare one canonical business or brand identity and its official domains and channels.</p>
-      <p><a href="./register.html"><strong>Open Register →</strong></a></p>
-    </article>
-    <article class="feature">
-      <span class="feature-number">02</span>
-      <h2>Claims</h2>
-      <p>Select only the claims that matter to the pilot, such as official domain, authorization or a business relationship.</p>
-      <p><a href="./pilot.html"><strong>Define a pilot →</strong></a></p>
-    </article>
-    <article class="feature">
-      <span class="feature-number">03</span>
-      <h2>Evidence</h2>
-      <p>Agree what evidence can be considered, what remains private and what verification scope will be reported.</p>
-      <p><a href="./security.html"><strong>Review security →</strong></a></p>
-    </article>
-    <article class="feature">
-      <span class="feature-number">04</span>
-      <h2>Integration</h2>
-      <p>Expose the same identity to software through the portable profile and versioned API boundary.</p>
-      <p><a href="./integrate.html"><strong>See integration →</strong></a></p>
-    </article>
-  </section>
-
-  <section class="principles shell">
     <div>
-      <div class="eyebrow">FUTURE PRODUCTION PORTAL</div>
-      <h2>Sign in. Manage. Verify.</h2>
-    </div>
-    <div>
-      <p><strong>Company workspace</strong> — manage identities, claims, evidence references and verification requests.</p>
-      <p><strong>Review queue</strong> — see which claims are self-claimed, source-verified, verified or revoked.</p>
-      <p><strong>Machine access</strong> — manage API integration at a separate authenticated boundary.</p>
-      <p><strong>Audit trail</strong> — preserve lifecycle events without turning the portal into a general-purpose document vault.</p>
-    </div>
-  </section>
-
-  <section class="demo shell">
-    <div class="demo-panel">
-      <div>
-        <div class="eyebrow">FOR THE FIRST PILOT</div>
-        <h2>Start with one real verification problem.</h2>
-        <p>For now, the founder-assisted pilot flow remains the safest route. Production multi-tenant authentication and persistence are intentionally blocked until the external deployment and governance gates are complete.</p>
+      <div class="panel">
+        <div class="eyebrow">4 · REVIEW</div>
+        <h2>Machine-readable pilot draft</h2>
+        <p class="note">The generated JSON is a draft for human review. It is not a VERQIVIA identity record until the production API and authorization boundary accept it.</p>
+        <pre id="portal-preview" class="portal-preview">{
+  "stage": "PILOT_DRAFT",
+  "identity": null
+}</pre>
+        <div class="portal-actions">
+          <button type="button" id="copy-draft" class="button secondary">Copy JSON</button>
+          <button type="button" id="download-draft" class="button secondary">Download JSON</button>
+          <a class="button secondary" href="./register.html">Open registration →</a>
+        </div>
       </div>
-      <a class="button secondary" href="https://www.linkedin.com/in/mehdihadadi/" rel="noreferrer">Contact the founder →</a>
+
+      <section class="panel section-gap-panel">
+        <div class="eyebrow">5 · NEXT SYSTEM BOUNDARY</div>
+        <h2>Production portal</h2>
+        <p>The production version will replace this local draft with authenticated company workspaces, organization-controlled registration, server-side persistence, verification requests, audit history and API credentials.</p>
+        <p class="note">Those capabilities remain deployment-gated until managed authentication, PostgreSQL, security controls, key governance, backup/restore and legal/privacy review are completed.</p>
+        <a class="button secondary" href="./security.html">Review security boundary →</a>
+      </section>
     </div>
   </section>
 </main>
 
 <footer class="footer shell">
-  <span>VERQIVIA · Pilot Workspace · Public prototype</span>
+  <span>VERQIVIA · Pilot Workspace Prototype · Browser-only draft mode</span>
   <span><a href="./privacy.html">Privacy</a> · <a href="./terms.html">Terms</a> · <a href="./security.html">Security</a></span>
 </footer>
+
+<script src="./portal.js" defer></script>
 </body>
 </html>
