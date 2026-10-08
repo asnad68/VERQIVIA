@@ -259,6 +259,40 @@ class PostgreSQLNothingStore:
             return False
 
     @_translate_database_errors
+    def get_ingestion_result(
+        self,
+        *,
+        actor: str,
+        idempotency_key: str,
+    ) -> IngestionResult | None:
+        actor = str(actor or "").strip()
+        idempotency_key = str(idempotency_key or "").strip()
+        if not actor or not idempotency_key:
+            raise ValueError("actor and idempotency_key are required")
+        with self._pool.connection() as connection:
+            row = connection.execute(
+                """
+                SELECT result_json, recorded_at
+                FROM ingestion_idempotency
+                WHERE actor = %s AND idempotency_key = %s
+                """,
+                (actor, idempotency_key),
+            ).fetchone()
+        if row is None:
+            return None
+        recorded_value = row["recorded_at"]
+        recorded_text = (
+            recorded_value.isoformat().replace("+00:00", "Z")
+            if hasattr(recorded_value, "isoformat")
+            else recorded_value
+        )
+        return IngestionResult(
+            data=json.loads(row["result_json"]),
+            recorded_at=recorded_text,
+            replayed=True,
+        )
+
+    @_translate_database_errors
     def create_auth_challenge(
         self,
         *,
