@@ -44,6 +44,11 @@ class EnrollmentGatewayTests(unittest.TestCase):
         )
         self.assertEqual(authorization["domain"], "apple.com")
 
+    def test_safe_json_rejects_duplicate_keys(self):
+        body = b'{"registration":{"name":"Example"},"registration":{"name":"Attacker"}}'
+        with self.assertRaises(gateway.EnrollmentValidationError):
+            gateway._safe_json(body)
+
     def test_google_authorization_rejects_changed_registration(self):
         draft = RegistrationDraft.from_mapping(
             {"name": "Apple", "domains": ["apple.com"]}
