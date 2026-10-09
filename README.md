@@ -79,6 +79,8 @@ See:
 - `docs/PORTABLE-VERIFICATION-PROFILE.md`
 - `schema/portable-verification-profile.schema.json`
 - `examples/portable-profile.example.json`
+- `docs/PORTAL-PROTOTYPE.md` — what the server-connected Portal implements and what is still blocked by external setup.
+- `docs/PILOT-SERVER-SMOKE-TEST.md` — step-by-step live pilot connection and negative security tests.
 
 ### Why this can matter to a large company
 
