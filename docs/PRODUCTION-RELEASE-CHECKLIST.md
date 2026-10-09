@@ -4,7 +4,11 @@ This checklist separates repository-level implementation from external productio
 
 ## Implemented in the repository
 
-- [x] Browser-only Portal draft builder with local field validation and schema-compatible registration payload shape
+- [x] Portal draft builder with local field validation and schema-compatible payload shape
+- [x] Authenticated pilot-draft API with server-side validation, persistent storage, actor-scoped reads and idempotent retry
+- [x] Browser OIDC Authorization Code + PKCE client; no embedded bearer token or client secret
+- [x] Separate pilot-intake scope (`nothing:pilot:write`) from protocol ingestion and billing scopes
+- [x] OpenAPI contract and unit/integration coverage for pilot draft intake
 - [x] Public-page HTML shell, CSP, local-asset and JavaScript syntax checks in CI
 - [x] Billing disabled by default while payment activation is frozen
 
@@ -43,8 +47,10 @@ This checklist separates repository-level implementation from external productio
 
 ## Required before public production launch
 
-- [ ] Register and configure a managed OIDC identity provider
-- [ ] Implement the authenticated production Portal only after provider, persistence and tenant-isolation controls are ready
+- [ ] Register/configure a managed OIDC provider that issues an RS256 `at+jwt` access token with the expected audience and `nothing:pilot:write` scope
+- [ ] Set `site/portal-config.js` public API/issuer/client/audience values; configure the exact GitHub Pages redirect URI and token-endpoint CORS
+- [ ] Deploy and verify the API end to end: authenticated submit, same-key replay, and actor-scoped read
+- [ ] Provision distinct `nothing_migrator`, `nothing_app` and (for future payment processing) `nothing_payment` database roles/connections
 - [ ] Inject production PostgreSQL DSN using the `nothing_app` runtime role
 - [ ] Inject payment-worker PostgreSQL DSN using the least-privileged `nothing_payment` role
 - [ ] Provision the operator-controlled subscription plans and crypto prices
