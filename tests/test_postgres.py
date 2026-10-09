@@ -72,6 +72,43 @@ class PostgreSQLPersistenceIntegrationTests(unittest.TestCase):
             "verification_events": [event],
         }
 
+    def test_portal_pilot_drafts_are_private_and_idempotent(self):
+        actor = "postgres-pilot-" + uuid.uuid4().hex
+        key = "pilot-submit-" + uuid.uuid4().hex
+        draft_id = str(uuid.uuid4())
+        payload = {
+            "stage": "PILOT_DRAFT",
+            "registration": {"name": "Synthetic PG Pilot", "domains": ["example.com"]},
+            "readiness": {"production_identity_created": False},
+        }
+        fingerprint = __import__("hashlib").sha256(
+            json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+
+        first = self.store.submit_pilot_draft(
+            actor=actor, draft_id=draft_id, idempotency_key=key,
+            request_sha256=fingerprint, payload=payload,
+        )
+        replay = self.store.submit_pilot_draft(
+            actor=actor, draft_id=str(uuid.uuid4()), idempotency_key=key,
+            request_sha256=fingerprint, payload=payload,
+        )
+        self.assertFalse(first["replayed"])
+        self.assertTrue(replay["replayed"])
+        self.assertEqual(first["draft_id"], replay["draft_id"])
+        self.assertEqual(
+            self.store.get_pilot_draft(actor=actor, draft_id=draft_id)["payload"],
+            payload,
+        )
+        self.assertIsNone(
+            self.store.get_pilot_draft(actor="different-actor", draft_id=draft_id)
+        )
+        with self.assertRaises(ConflictError):
+            self.store.submit_pilot_draft(
+                actor=actor, draft_id=str(uuid.uuid4()), idempotency_key=key,
+                request_sha256="a" * 64, payload={"different": True},
+            )
+
     def test_invoice_duration_is_snapshotted_at_creation(self):
         plan_code = "duration-snapshot-" + uuid.uuid4().hex[:12]
         price_id = str(uuid.uuid4())
