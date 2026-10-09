@@ -1,8 +1,12 @@
-# NOTHING Production Release Checklist
+# VERQIVIA Production Release Checklist
 
 This checklist separates repository-level implementation from external production operations. A checked code item means it is implemented and covered by the repository test suite; it does not mean a production cloud environment has already been provisioned.
 
 ## Implemented in the repository
+
+- [x] Browser-only Portal draft builder with local field validation and schema-compatible registration payload shape
+- [x] Public-page HTML shell, CSP, local-asset and JavaScript syntax checks in CI
+- [x] Billing disabled by default while payment activation is frozen
 
 - [x] PostgreSQL durable billing persistence
 - [x] Atomic invoice/payment allocation/entitlement transaction boundary
@@ -40,6 +44,7 @@ This checklist separates repository-level implementation from external productio
 ## Required before public production launch
 
 - [ ] Register and configure a managed OIDC identity provider
+- [ ] Implement the authenticated production Portal only after provider, persistence and tenant-isolation controls are ready
 - [ ] Inject production PostgreSQL DSN using the `nothing_app` runtime role
 - [ ] Inject payment-worker PostgreSQL DSN using the least-privileged `nothing_payment` role
 - [ ] Provision the operator-controlled subscription plans and crypto prices
