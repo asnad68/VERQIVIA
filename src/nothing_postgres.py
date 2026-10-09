@@ -52,7 +52,7 @@ from src.nothing_verify import (
     validate_verification_event,
 )
 
-STORAGE_SCHEMA_VERSION = 17
+STORAGE_SCHEMA_VERSION = 18
 DEFAULT_POOL_MIN_SIZE = 2
 DEFAULT_POOL_MAX_SIZE = 10
 DEFAULT_POOL_TIMEOUT_SECONDS = 10
@@ -303,6 +303,114 @@ class PostgreSQLNothingStore:
         )
 
     @_translate_database_errors
+    @_translate_database_errors
+    def submit_pilot_draft(
+        self, *, actor: str, draft_id: str, idempotency_key: str,
+        request_sha256: str, payload: Mapping[str, Any],
+        recorded_at: str | None = None,
+    ) -> dict[str, Any]:
+        actor = str(actor or "").strip()
+        draft_id = str(draft_id or "").strip()
+        idempotency_key = str(idempotency_key or "").strip()
+        request_sha256 = str(request_sha256 or "").strip().lower()
+        if not actor or not draft_id or not idempotency_key:
+            raise ValueError("actor, draft_id and idempotency_key are required")
+        if len(request_sha256) != 64 or any(ch not in "0123456789abcdef" for ch in request_sha256):
+            raise ValueError("request_sha256 must be a SHA-256 hex digest")
+        recorded = recorded_at or _utc_now()
+        payload_json = _canonical_json(payload)
+        with self._pool.connection() as connection:
+            with connection.transaction():
+                inserted = connection.execute(
+                    """
+                    INSERT INTO portal_pilot_drafts(
+                        draft_id, actor, idempotency_key, request_sha256,
+                        payload_json, status, recorded_at
+                    ) VALUES (%s::uuid, %s, %s, %s, %s::jsonb, 'RECEIVED', %s::timestamptz)
+                    ON CONFLICT (actor, idempotency_key) DO NOTHING
+                    RETURNING draft_id, status, payload_json, recorded_at, request_sha256
+                    """,
+                    (draft_id, actor, idempotency_key, request_sha256, payload_json, recorded),
+                ).fetchone()
+                replayed = inserted is None
+                row = inserted
+                if row is None:
+                    row = connection.execute(
+                        """
+                        SELECT draft_id, status, payload_json, recorded_at, request_sha256
+                        FROM portal_pilot_drafts
+                        WHERE actor = %s AND idempotency_key = %s
+                        FOR SHARE
+                        """,
+                        (actor, idempotency_key),
+                    ).fetchone()
+                    if row is None:
+                        raise StoreError("pilot draft idempotency result is unavailable")
+                    if row["request_sha256"] != request_sha256:
+                        raise ConflictError("Idempotency-Key was already used for a different pilot draft")
+                else:
+                    connection.execute(
+                        """
+                        INSERT INTO audit_log(
+                            recorded_at, actor, action, record_type, record_id,
+                            content_sha256, details_json
+                        ) VALUES (%s::timestamptz, %s, 'SUBMIT', 'portal_pilot_draft', %s, %s, %s)
+                        """,
+                        (
+                            recorded, actor, str(row["draft_id"]), request_sha256,
+                            json.dumps({"status": "RECEIVED"}, separators=(",", ":")),
+                        ),
+                    )
+        recorded_value = row["recorded_at"]
+        recorded_text = (
+            recorded_value.isoformat().replace("+00:00", "Z")
+            if hasattr(recorded_value, "isoformat")
+            else str(recorded_value)
+        )
+        stored_payload = row["payload_json"]
+        if isinstance(stored_payload, str):
+            stored_payload = json.loads(stored_payload)
+        return {
+            "draft_id": str(row["draft_id"]),
+            "status": row["status"],
+            "recorded_at": recorded_text,
+            "payload": stored_payload,
+            "replayed": replayed,
+        }
+
+    @_translate_database_errors
+    def get_pilot_draft(self, *, actor: str, draft_id: str) -> dict[str, Any] | None:
+        actor = str(actor or "").strip()
+        draft_id = str(draft_id or "").strip()
+        if not actor or not draft_id:
+            raise ValueError("actor and draft_id are required")
+        with self._pool.connection() as connection:
+            row = connection.execute(
+                """
+                SELECT draft_id, status, payload_json, recorded_at
+                FROM portal_pilot_drafts
+                WHERE draft_id = %s::uuid AND actor = %s
+                """,
+                (draft_id, actor),
+            ).fetchone()
+        if row is None:
+            return None
+        recorded_value = row["recorded_at"]
+        recorded_text = (
+            recorded_value.isoformat().replace("+00:00", "Z")
+            if hasattr(recorded_value, "isoformat")
+            else str(recorded_value)
+        )
+        stored_payload = row["payload_json"]
+        if isinstance(stored_payload, str):
+            stored_payload = json.loads(stored_payload)
+        return {
+            "draft_id": str(row["draft_id"]),
+            "status": row["status"],
+            "payload": stored_payload,
+            "recorded_at": recorded_text,
+        }
+
     def create_auth_challenge(
         self,
         *,
