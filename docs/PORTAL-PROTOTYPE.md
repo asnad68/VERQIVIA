@@ -13,7 +13,9 @@
 - Sends a draft to `POST /v1/pilot/drafts` with the separate `nothing:pilot:write` scope and an `Idempotency-Key`.
 - Stores accepted drafts in PostgreSQL or the SQLite reference backend; returns a draft UUID and a `RECEIVED` status.
 - Allows the authenticated submitting actor to retrieve only their own draft with `GET /v1/pilot/drafts/{draft_id}`.
+- Performs unauthenticated `/healthz` and `/readyz` probes once public API configuration is present, so the page can distinguish API reachability from database readiness before submission.
 - Treats exact retries as idempotent and rejects reuse of a key with a different payload.
+- Adds HTTP integration tests for authentication, actor isolation, idempotent retry/conflict, invalid payloads, origin allowlisting and the browser preflight headers.
 
 A successful HTTP response means only that a draft was received for controlled pilot review. It does **not** create an official VERQIVIA identity, prove that a user represents the company, confirm domain ownership, verify claims, or issue a cryptographic proof.
 
@@ -43,7 +45,7 @@ Drafts may contain business-contact information. Use synthetic data in early tes
 
 ## Deployment boundary and remaining work
 
-The code and deployment contract are implemented on the pilot branch. The server is **not live merely because the code exists**. Before real external users can submit drafts, an operator must:
+The client, API route and deployment contract are in the repository's main branch. The connected flow is **not live yet**: the Render workspace currently has no API service or PostgreSQL instance, and `site/portal-config.js` intentionally contains no live API/OIDC values. The page remains safe in local-draft mode until those external services are configured. Before real external users can submit drafts, an operator must:
 
 1. Provision the API and PostgreSQL, including separate migration-owner and least-privileged application database credentials.
 2. Configure the OIDC issuer, API audience, JWKS URI, public client and exact callback/CORS settings.
