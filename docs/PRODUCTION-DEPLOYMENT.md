@@ -22,6 +22,7 @@ Machine-readable discovery/profile
 
 ## Repository deployment assets
 
+- `docs/PILOT-SERVER-SMOKE-TEST.md` — exact live test sequence and security-negative checks after deployment.
 - `render.yaml` — deployment blueprint for the API service and PostgreSQL target. It does **not** create the GitHub Pages static site.
 - `Dockerfile` — production API container.
 - `.env.example` — configuration contract.
@@ -165,6 +166,8 @@ Commercial production requires all external launch gates to be evidenced, includ
 Crypto settlement remains separately gated. It must not be enabled merely because payment code exists in the repository.
 
 ## 10. Current boundary
+
+**Environment check (2026-10-09):** the connected Render workspace has no VERQIVIA API service and no PostgreSQL instance. This runbook describes the target deployment, not a currently live server. Do not fill the Portal's public configuration or invite test users until the API, persistent database and OIDC provider have actually been provisioned and smoke-tested.
 
 At repository level, VERQIVIA is suitable for controlled pilot/review and early commercial discussions.
 
