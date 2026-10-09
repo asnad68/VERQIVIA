@@ -12,7 +12,7 @@ from pathlib import Path
 
 import src.nothing_api as api_module
 from src.nothing_api import build_server
-from src.nothing_auth import AuthenticatedPrincipal, PILOT_DRAFT_SCOPE if False else AuthenticatedPrincipal
+from src.nothing_auth import AuthenticatedPrincipal
 from src.nothing_store import SQLiteNothingStore
 
 
