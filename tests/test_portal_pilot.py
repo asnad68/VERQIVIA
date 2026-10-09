@@ -68,13 +68,13 @@ class PilotDraftValidationTests(unittest.TestCase):
 
     def test_rejects_malformed_unicode_domain_without_internal_error(self):
         payload = sample_draft()
-        payload["registration"]["domains"] = ["\\ud800"]
+        payload["registration"]["domains"] = [chr(0xD800)]
         with self.assertRaises(PilotDraftValidationError):
             parse_pilot_draft(json.dumps(payload).encode("utf-8"), "application/json")
 
     def test_rejects_control_characters_in_urls(self):
         payload = sample_draft()
-        payload["registration"]["website"] = "https://example.com/\\npath"
+        payload["registration"]["website"] = "https://example.com/" + chr(10) + "path"
         with self.assertRaises(PilotDraftValidationError):
             parse_pilot_draft(json.dumps(payload).encode("utf-8"), "application/json")
 
