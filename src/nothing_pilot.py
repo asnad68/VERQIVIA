@@ -43,6 +43,8 @@ def _http_url(value: Any, field: str, *, required: bool = False, limit: int = 50
     text = _text(value, field, limit, required=required)
     if not text:
         return ""
+    if any(ord(char) < 32 for char in text):
+        raise PilotDraftValidationError(f"{field} contains control characters")
     try:
         parsed = urlsplit(text)
         hostname = parsed.hostname
@@ -70,9 +72,6 @@ def _domain(value: Any) -> str:
     text = text.rstrip(".").lower()
     try:
         ascii_domain = text.encode("idna").decode("ascii")
-        ipaddress.ip_address(ascii_domain)
-    except ValueError:
-        pass
     except UnicodeError as exc:
         raise PilotDraftValidationError("domain is not a valid public hostname") from exc
     try:
