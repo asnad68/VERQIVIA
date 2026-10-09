@@ -35,7 +35,7 @@ Use an authorized Render workspace and apply the root `render.yaml`. The bluepri
 - `verqivia-api` — Docker web service;
 - `verqivia-postgres` — PostgreSQL target.
 
-GitHub Pages remains the separate canonical public website. The public Portal currently creates a local draft only and does not submit registration data to this API.
+GitHub Pages remains the separate canonical public website. The Portal now has a code path for authenticated pilot-intake submission; it remains disabled until API/OIDC public configuration is supplied and the server is deployed.
 
 Do not expose the database publicly. Keep the service topology single-tenant for the current release.
 
@@ -53,12 +53,21 @@ The API validates issuer, audience, expiry, token type, signing algorithm and re
 
 Do not use the reference static-bearer mode for public production.
 
+### Portal intake authorization
+
+The private pilot intake has a separate scope: `NOTHING_PORTAL_REQUIRED_SCOPE=nothing:pilot:write`. Configure the OIDC public client for Authorization Code + PKCE (S256), the exact callback URI `https://asnad68.github.io/VERQIVIA/portal.html`, and token-endpoint CORS for `https://asnad68.github.io`. The browser configuration file `site/portal-config.js` contains public values only; it must never contain a client secret or bearer token.
+
+The access token must be a signed RS256 JWT with `typ=at+jwt` (or `application/at+jwt`) and the exact configured API audience. The claims must include issuer, subject, `exp`, `iat`, `jti`, `client_id` and the dedicated pilot scope. The API validates the signature and scope independently; a client-side token check is only a compatibility check.
+
+The Portal can only be connected after the API and IdP are deployed. A successful pilot-draft response records an intake request; it does not register an official identity or verify a company.
+
 ## 3. Configure persistent storage
 
 Set:
 
 - `NOTHING_STORAGE_BACKEND=postgres`;
-- `NOTHING_POSTGRES_DSN` from the managed database connection;
+- `NOTHING_POSTGRES_DSN` as the least-privileged `nothing_app` runtime connection;
+- `NOTHING_POSTGRES_MIGRATOR_DSN` as a separate migration connection with the documented DDL/ownership privileges; the pre-deploy migration command fails closed if it is not configured;
 - bounded pool and statement/lock timeouts from `.env.example`.
 
 Use TLS for the database connection according to the provider's supported configuration. Runtime credentials should have only the privileges required by the application.
