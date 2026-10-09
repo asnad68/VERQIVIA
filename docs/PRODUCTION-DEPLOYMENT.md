@@ -35,6 +35,14 @@ Use an authorized Render workspace and apply the root `render.yaml`. The bluepri
 - `verqivia-api` — Docker web service;
 - `verqivia-postgres` — PostgreSQL target.
 
+The migration SQL expects distinct PostgreSQL roles `nothing_migrator`, `nothing_app` and `nothing_payment`. The Blueprint reserves the default managed credential for `nothing_migrator`; create/configure the other role credentials before applying migrations (the billing migrations require `nothing_payment` to exist even while payment remains disabled). Configure:
+
+- `NOTHING_POSTGRES_MIGRATOR_DSN`: internal connection string for the `nothing_migrator` role;
+- `NOTHING_POSTGRES_DSN`: internal connection string for the least-privileged `nothing_app` runtime role;
+- a separate `nothing_payment` connection for a future payment worker, only if that component is deliberately activated.
+
+The migration script checks `current_user = nothing_migrator` before applying any schema change and refuses to migrate as the API runtime identity. Record each managed connection string when creating the credential; do not point both variables at the same account. If the provider cannot give the roles the permissions and ownership required by the migration scripts, stop and resolve that database design before deploying.
+
 GitHub Pages remains the separate canonical public website. The Portal now has a code path for authenticated pilot-intake submission; it remains disabled until API/OIDC public configuration is supplied and the server is deployed.
 
 Do not expose the database publicly. Keep the service topology single-tenant for the current release.
@@ -71,6 +79,10 @@ Set:
 - bounded pool and statement/lock timeouts from `.env.example`.
 
 Use TLS for the database connection according to the provider's supported configuration. Runtime credentials should have only the privileges required by the application.
+
+## 3a. Runtime and migration credential separation
+
+In the Render dashboard, configure both DSNs explicitly from the database credential manager. `NOTHING_POSTGRES_DSN` is marked `sync: false` by design: a Blueprint-managed default connection string could otherwise silently change when a database credential is rotated. Use the database's internal URL, not an exposed public URL. The migration pre-deploy command requires its own connection and checks the SQL role name before running.
 
 ## 4. Configure canonical machine URLs
 
