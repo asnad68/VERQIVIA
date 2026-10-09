@@ -34,7 +34,7 @@ def _text(value: Any, field: str, limit: int, *, required: bool = False) -> str:
         raise PilotDraftValidationError(f"{field} exceeds its length limit")
     if required and not result:
         raise PilotDraftValidationError(f"{field} is required")
-    if any(ord(char) < 32 and char not in "\\t\\n\\r" for char in result):
+    if any(ord(char) < 32 and char not in "\t\n\r" for char in result):
         raise PilotDraftValidationError(f"{field} contains control characters")
     return result
 
@@ -158,6 +158,8 @@ def parse_pilot_draft(body: bytes, content_type: str | None) -> dict[str, Any]:
         raise PilotDraftValidationError("readiness has an invalid shape")
     if readiness.get("production_identity_created") is not False:
         raise PilotDraftValidationError("a pilot draft cannot create a production identity")
+    if readiness.get("server_submission") is not False:
+        raise PilotDraftValidationError("the client cannot assert that a draft was already submitted")
 
     name = _text(registration.get("name"), "name", 180, required=True)
     business_type = _text(registration.get("type"), "type", 30, required=True)
