@@ -301,6 +301,7 @@
           credentials: "omit",
           cache: "no-store",
           redirect: "error",
+          referrerPolicy: "no-referrer",
           headers: { Accept: "application/json" }
         });
         const body = await response.json().catch(() => null);
