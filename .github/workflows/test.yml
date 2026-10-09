@@ -29,9 +29,12 @@ jobs:
           node --check site/register.js
           node --check site/portal.js
           node --check site/portal-draft.js
+          node --check site/portal-config.js
+          node --check site/portal-auth.js
           node --check tests/test_portal_draft.js
+          node --check tests/test_portal_auth.js
           node --check site/assets/app.js
-          node --test tests/test_portal_draft.js
+          node --test tests/test_portal_draft.js tests/test_portal_auth.js
       - name: Validate deployment YAML syntax
         run: |
           ruby -e 'require "yaml"; d = YAML.load_file("render.yaml"); raise "render.yaml must be a mapping" unless d.is_a?(Hash)'
