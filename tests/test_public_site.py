@@ -14,7 +14,9 @@ class PublicSiteSmokeTests(unittest.TestCase):
         page = self.read("portal.html")
         self.assertIn('Content-Security-Policy"', page)
         self.assertIn('<link rel="stylesheet" href="./portal.css">', page)
+        self.assertIn('<script src="./portal-draft.js" defer></script>', page)
         self.assertIn('<script src="./portal.js" defer></script>', page)
+        self.assertIn('id="official-channels"', page)
         self.assertNotIn("<style>", page)
         self.assertNotIn("<style ", page)
 
@@ -40,6 +42,25 @@ class PublicSiteSmokeTests(unittest.TestCase):
         script = self.read("portal.js")
         self.assertNotIn("fetch(", script)
         self.assertNotIn("XMLHttpRequest", script)
+
+    def test_all_public_html_pages_have_complete_document_shell(self) -> None:
+        html_files = sorted(SITE.glob("*.html"))
+        self.assertTrue(html_files)
+        for path in html_files:
+            page = path.read_text(encoding="utf-8")
+            lower = page.lower()
+            with self.subTest(page=path.name):
+                for tag in ("html", "head", "body"):
+                    self.assertEqual(
+                        len(re.findall(r"<" + tag + r"(?:\\s|>)", lower)),
+                        1,
+                        f"{path.name} must contain exactly one opening {tag} tag",
+                    )
+                    self.assertEqual(
+                        len(re.findall(r"</" + tag + r"\\s*>", lower)),
+                        1,
+                        f"{path.name} must contain exactly one closing {tag} tag",
+                    )
 
     def test_all_public_html_pages_have_csp_and_resolve_local_assets(self):
         html_files = sorted(SITE.glob("*.html"))
