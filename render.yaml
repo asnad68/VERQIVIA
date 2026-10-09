@@ -38,6 +38,8 @@ services:
         sync: false
       - key: NOTHING_AUTH_REQUIRED_SCOPE
         value: nothing:ingest
+      - key: NOTHING_PORTAL_REQUIRED_SCOPE
+        value: nothing:pilot:write
       - key: NOTHING_AUTH_ALLOWED_ALGORITHMS
         value: RS256
       - key: NOTHING_WRITE_ALLOWED_ORIGINS
