@@ -514,12 +514,14 @@ class NothingApiHandler(BaseHTTPRequestHandler):
         detail: str,
         instance: str | None = None,
         extra_headers: dict[str, str] | None = None,
+        retry_after: int | None = None,
     ) -> None:
         self._send(
             status,
             _error_payload(status, code, detail, instance),
             content_type="application/problem+json",
             allow_cache=False,
+            retry_after=retry_after,
             extra_headers=extra_headers,
         )
 
