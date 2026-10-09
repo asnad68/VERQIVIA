@@ -45,7 +45,7 @@ from src.nothing_verify import (
     validate_verification_event,
 )
 
-STORAGE_SCHEMA_VERSION = 5
+STORAGE_SCHEMA_VERSION = 6
 DEFAULT_DB_PATH = Path("data/nothing.db")
 
 
@@ -146,6 +146,16 @@ class NothingStore(Protocol):
     ) -> IngestionResult | None:
         ...
     
+    def submit_pilot_draft(
+        self, *, actor: str, draft_id: str, idempotency_key: str,
+        request_sha256: str, payload: Mapping[str, Any],
+        recorded_at: str | None = None,
+    ) -> dict[str, Any]:
+        ...
+
+    def get_pilot_draft(self, *, actor: str, draft_id: str) -> dict[str, Any] | None:
+        ...
+
     def create_auth_challenge(
         self,
         *,
@@ -563,6 +573,24 @@ CREATE INDEX IF NOT EXISTS idx_auth_challenges_registration_consumption
     ON auth_challenges(registration_consumed_at);
 """.strip()
 
+MIGRATION_006 = """
+CREATE TABLE IF NOT EXISTS portal_pilot_drafts (
+    draft_id TEXT PRIMARY KEY,
+    actor TEXT NOT NULL,
+    idempotency_key TEXT NOT NULL,
+    request_sha256 TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'RECEIVED',
+    recorded_at TEXT NOT NULL,
+    UNIQUE (actor, idempotency_key),
+    CHECK (status IN ('RECEIVED', 'UNDER_REVIEW', 'ACCEPTED', 'DECLINED'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_portal_pilot_drafts_actor_recorded
+    ON portal_pilot_drafts(actor, recorded_at DESC);
+""".strip()
+
+
 class SQLiteNothingStore:
     """Durable single-node store implementing the NOTHING storage port."""
 
@@ -597,6 +625,7 @@ class SQLiteNothingStore:
             (3, MIGRATION_003),
             (4, MIGRATION_004),
             (5, MIGRATION_005),
+            (6, MIGRATION_006),
         )
         with self._connect() as connection:
             connection.execute(
@@ -657,6 +686,99 @@ class SQLiteNothingStore:
             recorded_at=row["recorded_at"],
             replayed=True,
         )
+
+    def submit_pilot_draft(
+        self, *, actor: str, draft_id: str, idempotency_key: str,
+        request_sha256: str, payload: Mapping[str, Any],
+        recorded_at: str | None = None,
+    ) -> dict[str, Any]:
+        actor = str(actor or "").strip()
+        draft_id = str(draft_id or "").strip()
+        idempotency_key = str(idempotency_key or "").strip()
+        request_sha256 = str(request_sha256 or "").strip().lower()
+        if not actor or not draft_id or not idempotency_key:
+            raise ValueError("actor, draft_id and idempotency_key are required")
+        if len(request_sha256) != 64 or any(ch not in "0123456789abcdef" for ch in request_sha256):
+            raise ValueError("request_sha256 must be a SHA-256 hex digest")
+        recorded = recorded_at or _utc_now()
+        payload_json = _canonical_json(payload)
+        with self._connect() as connection:
+            try:
+                connection.execute("BEGIN IMMEDIATE")
+                existing = connection.execute(
+                    """
+                    SELECT draft_id, request_sha256, payload_json, status, recorded_at
+                    FROM portal_pilot_drafts WHERE actor = ? AND idempotency_key = ?
+                    """,
+                    (actor, idempotency_key),
+                ).fetchone()
+                if existing is not None:
+                    if existing["request_sha256"] != request_sha256:
+                        raise ConflictError("Idempotency-Key was already used for a different pilot draft")
+                    result = {
+                        "draft_id": existing["draft_id"],
+                        "status": existing["status"],
+                        "recorded_at": existing["recorded_at"],
+                        "payload": json.loads(existing["payload_json"]),
+                        "replayed": True,
+                    }
+                    connection.execute("COMMIT")
+                    return result
+                connection.execute(
+                    """
+                    INSERT INTO portal_pilot_drafts(
+                        draft_id, actor, idempotency_key, request_sha256,
+                        payload_json, status, recorded_at
+                    ) VALUES (?, ?, ?, ?, ?, 'RECEIVED', ?)
+                    """,
+                    (draft_id, actor, idempotency_key, request_sha256, payload_json, recorded),
+                )
+                connection.execute(
+                    """
+                    INSERT INTO audit_log(
+                        recorded_at, actor, action, record_type, record_id,
+                        content_sha256, details_json
+                    ) VALUES (?, ?, 'SUBMIT', 'portal_pilot_draft', ?, ?, ?)
+                    """,
+                    (
+                        recorded, actor, draft_id, request_sha256,
+                        json.dumps({"status": "RECEIVED"}, separators=(",", ":")),
+                    ),
+                )
+                connection.execute("COMMIT")
+            except Exception:
+                if connection.in_transaction:
+                    connection.execute("ROLLBACK")
+                raise
+        return {
+            "draft_id": draft_id,
+            "status": "RECEIVED",
+            "recorded_at": recorded,
+            "payload": json.loads(payload_json),
+            "replayed": False,
+        }
+
+    def get_pilot_draft(self, *, actor: str, draft_id: str) -> dict[str, Any] | None:
+        actor = str(actor or "").strip()
+        draft_id = str(draft_id or "").strip()
+        if not actor or not draft_id:
+            raise ValueError("actor and draft_id are required")
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT draft_id, status, payload_json, recorded_at
+                FROM portal_pilot_drafts WHERE draft_id = ? AND actor = ?
+                """,
+                (draft_id, actor),
+            ).fetchone()
+        if row is None:
+            return None
+        return {
+            "draft_id": row["draft_id"],
+            "status": row["status"],
+            "payload": json.loads(row["payload_json"]),
+            "recorded_at": row["recorded_at"],
+        }
 
     def create_auth_challenge(
         self,
