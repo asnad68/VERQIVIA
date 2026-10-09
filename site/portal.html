@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'">
-  <meta name="description" content="VERQIVIA Portal — pilot workspace prototype for preparing business identity and verification workflows.">
+  <meta name="description" content="VERQIVIA Portal — prepare and securely submit a pilot intake draft when the API and approved identity provider are configured.">
   <meta property="og:title" content="VERQIVIA Portal — Pilot Workspace">
-  <meta property="og:description" content="Prepare a controlled business identity and verification pilot without exposing private production data in the public prototype.">
+  <meta property="og:description" content="Prepare a business identity pilot intake. Server submission requires an authorized sign-in and does not create an official identity.">
   <meta property="og:type" content="website">
   <title>Portal — VERQIVIA</title>
   <link rel="stylesheet" href="./assets/styles.css">
@@ -29,9 +29,9 @@
 
 <main>
   <section class="hero shell">
-    <div class="eyebrow">VERQIVIA PILOT WORKSPACE · PROTOTYPE</div>
-    <h1>Prepare one business identity and its verification plan.</h1>
-    <p class="lead">This is a browser-only pilot workspace prototype. It creates a local draft for review; it does not create an official production identity, authenticate a company or store customer data on VERQIVIA servers.</p>
+    <div class="eyebrow">VERQIVIA CONTROLLED PILOT INTAKE</div>
+    <h1>Prepare a business identity for controlled review.</h1>
+    <p class="lead">Build and review a local draft first. When the operator has configured the production API and approved OpenID Connect provider, an authorized user can submit it to a private server intake. Submission does not verify ownership or create an official identity.</p>
   </section>
 
   <section class="shell portal-grid">
@@ -89,7 +89,7 @@
       <div class="panel">
         <div class="eyebrow">4 · REVIEW</div>
         <h2>Machine-readable pilot draft</h2>
-        <p class="note">The generated JSON is a draft for human review. It is not a VERQIVIA identity record until the production API and authorization boundary accept it.</p>
+        <p class="note">The generated JSON is a draft for human review. A server acceptance means only “received for pilot review”; it does not verify a company or create an official identity.</p>
         <pre id="portal-preview" class="portal-preview">{
   "stage": "PILOT_DRAFT",
   "identity": null
@@ -101,11 +101,26 @@
         </div>
       </div>
 
+      <section class="panel section-gap-panel" id="server-pilot-panel">
+        <div class="eyebrow">5 · AUTHENTICATED SERVER INTAKE</div>
+        <h2>Connect and submit a pilot draft</h2>
+        <p class="note">Connection is disabled until the operator deploys the API and configures the matching OIDC issuer, public client ID and API audience. The browser uses authorization code with PKCE and a short-lived access token; no client secret or API token is embedded in the website.</p>
+        <div id="server-status" class="status status-neutral portal-status" role="status" aria-live="polite">Checking server configuration…</div>
+        <div id="auth-status" class="status status-neutral portal-status" role="status" aria-live="polite">Checking authentication configuration…</div>
+        <div class="portal-actions">
+          <button type="button" id="connect-account">Connect pilot account</button>
+          <button type="button" id="disconnect-account" class="button secondary" disabled>Disconnect</button>
+          <button type="button" id="submit-server-draft" disabled>Submit draft securely</button>
+          <button type="button" id="refresh-server-draft" class="button secondary" disabled>Refresh server status</button>
+        </div>
+        <p class="note">Only the authenticated account that submitted a draft can read it back. Drafts are retained on the server for pilot review. Do not enter confidential documents, passwords, recovery phrases or private keys.</p>
+      </section>
+
       <section class="panel section-gap-panel">
-        <div class="eyebrow">5 · NEXT SYSTEM BOUNDARY</div>
-        <h2>Production portal</h2>
-        <p>The production version will replace this local draft with authenticated company workspaces, organization-controlled registration, server-side persistence, verification requests, audit history and API credentials.</p>
-        <p class="note">Those capabilities remain deployment-gated until managed authentication, PostgreSQL, security controls, key governance, backup/restore and legal/privacy review are completed.</p>
+        <div class="eyebrow">6 · NEXT SYSTEM BOUNDARY</div>
+        <h2>Official identity boundary</h2>
+        <p>The authenticated pilot endpoint stores intake drafts only. It is not the organization-ownership gate and does not issue official identities, verify claims or sign proofs.</p>
+        <p class="note">Organization-controlled registration, tenant isolation, operational recovery, signing-key governance and legal/privacy review remain required before public production. Payments remain frozen.</p>
         <a class="button secondary" href="./security.html">Review security boundary →</a>
       </section>
     </div>
@@ -113,11 +128,13 @@
 </main>
 
 <footer class="footer shell">
-  <span>VERQIVIA · Pilot Workspace Prototype · Browser-only draft mode</span>
+  <span>VERQIVIA · Controlled Pilot Intake · No official identity created by submission</span>
   <span><a href="./privacy.html">Privacy</a> · <a href="./terms.html">Terms</a> · <a href="./security.html">Security</a></span>
 </footer>
 
 <script src="./portal-draft.js" defer></script>
+<script src="./portal-config.js" defer></script>
+<script src="./portal-auth.js" defer></script>
 <script src="./portal.js" defer></script>
 </body>
 </html>
