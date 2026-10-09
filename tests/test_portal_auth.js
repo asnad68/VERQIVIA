@@ -52,7 +52,7 @@ test("JWT parser reads well-formed token JSON only", () => {
   const token = fakeJwt({ typ: "at+jwt", alg: "RS256" }, validClaims());
   assert.equal(parseJwt(token).header.typ, "at+jwt");
   assert.throws(() => parseJwt("opaque-access-token"), /JWT access token/);
-  assert.throws(() => parseJwt("a.b.c"), /JSON|position|property/i);
+  assert.throws(() => parseJwt("a.b.c"), /InvalidCharacter|JSON|position|property/i);
 });
 
 test("access-token contract rejects wrong token type, audience and scope", () => {
