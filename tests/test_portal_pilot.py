@@ -66,6 +66,18 @@ class PilotDraftValidationTests(unittest.TestCase):
                 with self.assertRaises(PilotDraftValidationError):
                     parse_pilot_draft(json.dumps(payload).encode(), "application/json")
 
+    def test_rejects_malformed_unicode_domain_without_internal_error(self):
+        payload = sample_draft()
+        payload["registration"]["domains"] = ["\\ud800"]
+        with self.assertRaises(PilotDraftValidationError):
+            parse_pilot_draft(json.dumps(payload).encode("utf-8"), "application/json")
+
+    def test_rejects_control_characters_in_urls(self):
+        payload = sample_draft()
+        payload["registration"]["website"] = "https://example.com/\\npath"
+        with self.assertRaises(PilotDraftValidationError):
+            parse_pilot_draft(json.dumps(payload).encode("utf-8"), "application/json")
+
     def test_rejects_non_http_url_credentials_and_unsupported_claims(self):
         for bad_website, claims in (
             ("javascript:alert(1)", ["official_website"]),
