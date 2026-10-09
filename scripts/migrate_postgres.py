@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
-"""Apply PostgreSQL migrations using the separate schema-owner connection.
-
-The public API container runs with NOTHING_POSTGRES_DSN and the least-privileged
-nothing_app role. The pre-deploy migration phase must use
-NOTHING_POSTGRES_MIGRATOR_DSN. Never silently run schema migrations as the API
-runtime identity.
-"""
+"""Apply PostgreSQL migrations using the dedicated schema-owner connection."""
 from __future__ import annotations
 
 import os
@@ -18,25 +12,34 @@ def main() -> int:
     runtime_dsn = os.getenv("NOTHING_POSTGRES_DSN", "").strip()
     if not migrator_dsn:
         raise SystemExit(
-            "NOTHING_POSTGRES_MIGRATOR_DSN is required for schema migrations; "
-            "configure a separate migration-owner connection."
+            "NOTHING_POSTGRES_MIGRATOR_DSN is required; configure the dedicated "
+            "nothing_migrator database credential."
         )
     if runtime_dsn and migrator_dsn == runtime_dsn:
         raise SystemExit(
-            "NOTHING_POSTGRES_MIGRATOR_DSN must differ from the application runtime DSN."
+            "NOTHING_POSTGRES_MIGRATOR_DSN must differ from the API runtime DSN."
         )
 
+    # Check identity before any DDL is applied. Never auto-migrate as the app role.
     os.environ["NOTHING_POSTGRES_DSN"] = migrator_dsn
-    os.environ["NOTHING_POSTGRES_AUTO_MIGRATE"] = "true"
+    os.environ["NOTHING_POSTGRES_AUTO_MIGRATE"] = "false"
     store = PostgreSQLNothingStore.from_environment()
     try:
+        with store._pool.connection() as connection:
+            row = connection.execute("SELECT current_user AS role_name").fetchone()
+        if row is None or row["role_name"] != "nothing_migrator":
+            raise SystemExit(
+                "Migration connection must authenticate as exactly 'nothing_migrator'; "
+                "no schema changes were applied."
+            )
+        store._migrate()
         if not store.health():
             raise SystemExit(
                 "PostgreSQL migration finished but schema is not at the expected version."
             )
     finally:
         store.close()
-    print("VERQIVIA PostgreSQL migrations: OK")
+    print("VERQIVIA PostgreSQL migrations: OK (nothing_migrator)")
     return 0
 
 
