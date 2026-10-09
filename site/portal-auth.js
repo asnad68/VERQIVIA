@@ -164,6 +164,10 @@
           !document.response_types_supported.includes("code")) {
         throw new Error("OIDC provider does not advertise authorization-code flow.");
       }
+      if (Array.isArray(document.code_challenge_methods_supported) &&
+          !document.code_challenge_methods_supported.includes("S256")) {
+        throw new Error("OIDC provider does not support PKCE with S256.");
+      }
       metadata = document;
       return metadata;
     }
