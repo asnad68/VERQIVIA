@@ -51,13 +51,15 @@ class PublicSiteSmokeTests(unittest.TestCase):
             lower = page.lower()
             with self.subTest(page=path.name):
                 for tag in ("html", "head", "body"):
+                    opening_count = lower.count("<" + tag + " ") + lower.count("<" + tag + ">")
+                    closing_count = lower.count("</" + tag + ">")
                     self.assertEqual(
-                        len(re.findall(r"<" + tag + r"(?:\\s|>)", lower)),
+                        opening_count,
                         1,
                         f"{path.name} must contain exactly one opening {tag} tag",
                     )
                     self.assertEqual(
-                        len(re.findall(r"</" + tag + r"\\s*>", lower)),
+                        closing_count,
                         1,
                         f"{path.name} must contain exactly one closing {tag} tag",
                     )
