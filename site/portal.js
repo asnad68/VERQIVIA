@@ -243,9 +243,20 @@
       return;
     }
     try {
+      const state = await client.checkServer();
+      if (state.health.status === "ok" && state.readiness.status === "ready") {
+        setServerStatus("API reachable and storage ready. Connect an authorized pilot account to submit a draft.", "ok");
+      } else {
+        setServerStatus("API is reachable, but storage is not ready yet. Server submission remains unavailable.", "bad");
+      }
+    } catch (error) {
+      setServerStatus(error.message || "Could not reach the configured API. Check its URL, availability and read-only CORS settings.", "bad");
+    }
+
+    try {
       const callback = await client.finishCallback();
       if (callback.handled) {
-        setServerStatus("Identity provider sign-in completed. Access is scoped to pilot intake only.", "ok");
+        setServerStatus("Identity provider sign-in completed. API access is scoped to pilot intake only.", "ok");
       }
     } catch (error) {
       setServerStatus(error.message || "Sign-in could not be completed.", "bad");
