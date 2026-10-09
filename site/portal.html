@@ -11,7 +11,7 @@
   <title>Portal — VERQIVIA</title>
   <link rel="stylesheet" href="./assets/styles.css">
   <link rel="stylesheet" href="./portal.css">
-/head>
+</head>
 <body>
 <header class="topbar">
   <a class="brand" href="./">◇ VERQIVIA</a>
@@ -54,6 +54,9 @@
 
         <label for="official-domain">Official domain</label>
         <input id="official-domain" maxlength="253" placeholder="example.com">
+
+        <label for="official-channels">Official digital channels (one URL per line)</label>
+        <textarea id="official-channels" rows="3" maxlength="3000" placeholder="https://www.linkedin.com/company/example"></textarea>
 
         <label for="public-description">Public description</label>
         <textarea id="public-description" rows="4" maxlength="2000" placeholder="Factual description for the pilot record."></textarea>
@@ -114,6 +117,7 @@
   <span><a href="./privacy.html">Privacy</a> · <a href="./terms.html">Terms</a> · <a href="./security.html">Security</a></span>
 </footer>
 
+<script src="./portal-draft.js" defer></script>
 <script src="./portal.js" defer></script>
 </body>
 </html>
