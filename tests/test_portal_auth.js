@@ -76,6 +76,35 @@ test("access-token contract rejects wrong token type, audience and scope", () =>
   );
 });
 
+test("server status probe checks health and storage readiness without sending credentials", async () => {
+  const calls = [];
+  const browser = {
+    location: { protocol: "https:", hostname: "asnad68.github.io" },
+    sessionStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
+    crypto: {},
+    fetch: async (url, options) => {
+      calls.push({ url, options });
+      if (url.endsWith("/healthz")) {
+        return { ok: true, status: 200, json: async () => ({ status: "ok" }) };
+      }
+      return { ok: false, status: 503, json: async () => ({ status: "not_ready" }) };
+    }
+  };
+  const state = await require("../site/portal-auth.js").createClient(config, browser).checkServer();
+  assert.deepEqual(state, {
+    health: { httpStatus: 200, status: "ok" },
+    readiness: { httpStatus: 503, status: "not_ready" }
+  });
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].url, "https://api.verqivia.example/healthz");
+  assert.equal(calls[1].url, "https://api.verqivia.example/readyz");
+  for (const call of calls) {
+    assert.equal(call.options.credentials, "omit");
+    assert.equal(call.options.redirect, "error");
+    assert.equal("Authorization" in (call.options.headers || {}), false);
+  }
+});
+
 test("access-token contract rejects expired tokens and incomplete server claims", () => {
   const header = { typ: "at+jwt", alg: "RS256" };
   assert.throws(
