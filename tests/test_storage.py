@@ -375,7 +375,7 @@ class SQLiteNothingStoreTests(unittest.TestCase):
             version = connection.execute(
                 "SELECT MAX(version) FROM schema_migrations"
             ).fetchone()[0]
-        self.assertEqual(version, 5)
+        self.assertEqual(version, 6)
 
 if __name__ == "__main__":
     unittest.main()

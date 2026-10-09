@@ -225,6 +225,18 @@ The production deployment target remains a stateless API tier behind TLS/WAF/API
 Authenticated ingestion is intentionally separate from Verify Web and the public GET resource surface.
 
 
+## Authenticated pilot intake
+
+The controlled pilot intake is separate from protocol ingestion and billing:
+
+- `POST /v1/pilot/drafts` requires a signed access token with the dedicated `nothing:pilot:write` scope and a valid `Idempotency-Key`.
+- `GET /v1/pilot/drafts/{draft_id}` requires that same scope and returns only a draft owned by the authenticated actor.
+- The server repeats URL/domain/shape validation and persists a bounded JSON intake draft.
+- `status=RECEIVED` means received for human pilot review only. It does not establish corporate authority, create a public identity, verify a claim, or issue a cryptographic proof.
+- A retry with the same key and normalized content returns the prior draft; using that key for different content returns `409 CONFLICT`.
+
+The browser portal uses Authorization Code + PKCE (S256). Its public configuration contains no secrets. The API validates the access-token signature, issuer, audience, expiration, token type and scope independently. Identity-provider and API/database provisioning remain deployment prerequisites.
+
 ## Production authentication
 
 The production ingestion mode validates JWT access tokens from a configured identity provider.

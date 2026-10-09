@@ -58,6 +58,11 @@ from src.nothing_verify import (
     NOTHING_ID_RE,
     ValidationError,
 )
+from src.nothing_pilot import (
+    PILOT_DRAFT_MAX_BODY_BYTES,
+    PilotDraftValidationError,
+    parse_pilot_draft,
+)
 
 API_VERSION = "1"
 PROTOCOL_VERSION = "0.1"
@@ -90,6 +95,10 @@ BILLING_MAX_EXPIRY_SECONDS = 86400
 BILLING_SCOPE = os.getenv(
     "NOTHING_BILLING_REQUIRED_SCOPE",
     "nothing:billing",
+).strip()
+PILOT_DRAFT_SCOPE = os.getenv(
+    "NOTHING_PORTAL_REQUIRED_SCOPE",
+    "nothing:pilot:write",
 ).strip()
 BILLING_ENABLED = os.getenv(
     "NOTHING_BILLING_ENABLED",
@@ -367,6 +376,7 @@ class NothingHttpServer(ThreadingHTTPServer):
         ingestion_authenticator: Any,
         billing_authenticator: Any | None,
         billing_service: SubscriptionBillingService | None,
+        portal_authenticator: Any | None,
     ):
         super().__init__(server_address, handler_class)
         self.store = store
@@ -374,6 +384,7 @@ class NothingHttpServer(ThreadingHTTPServer):
         self.ingestion_authenticator = ingestion_authenticator
         self.billing_authenticator = billing_authenticator
         self.billing_service = billing_service
+        self.portal_authenticator = portal_authenticator
 
     def server_close(self) -> None:
         super().server_close()
@@ -404,6 +415,10 @@ class NothingApiHandler(BaseHTTPRequestHandler):
     @property
     def billing_service(self) -> SubscriptionBillingService | None:
         return self.server.billing_service  # type: ignore[attr-defined]
+
+    @property
+    def portal_authenticator(self) -> Any | None:
+        return self.server.portal_authenticator  # type: ignore[attr-defined]
 
     def _request_id(self) -> str:
         request_id = getattr(self, "_nothing_request_id", None)
@@ -499,12 +514,14 @@ class NothingApiHandler(BaseHTTPRequestHandler):
         detail: str,
         instance: str | None = None,
         extra_headers: dict[str, str] | None = None,
+        retry_after: int | None = None,
     ) -> None:
         self._send(
             status,
             _error_payload(status, code, detail, instance),
             content_type="application/problem+json",
             allow_cache=False,
+            retry_after=retry_after,
             extra_headers=extra_headers,
         )
 
@@ -587,6 +604,14 @@ class NothingApiHandler(BaseHTTPRequestHandler):
                 return
             self._post_ingestion_bundle()
             return
+        if path == "/v1/pilot/drafts":
+            if not self._prepare_write_cors():
+                return
+            if not INGESTION_RATE_LIMITER.allow(f"pilot:{self._client_key()}"):
+                self._send_problem(429, "RATE_LIMITED", "Too many pilot-draft requests.", retry_after=INGESTION_RATE_LIMIT_WINDOW_SECONDS)
+                return
+            self._post_pilot_draft()
+            return
         if path == "/v1/billing/invoices":
             if not self._prepare_write_cors():
                 return
@@ -608,6 +633,20 @@ class NothingApiHandler(BaseHTTPRequestHandler):
     def do_OPTIONS(self) -> None:
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/") or "/"
+        if path == "/v1/pilot/drafts" or path.startswith("/v1/pilot/drafts/"):
+            if not self._prepare_write_cors():
+                return
+            self.send_response(204)
+            self.send_header("Allow", "GET, POST, OPTIONS" if path == "/v1/pilot/drafts" else "GET, OPTIONS")
+            if getattr(self, "_cors_origin", None):
+                self.send_header("Access-Control-Allow-Origin", self._cors_origin)
+                self.send_header("Vary", "Origin")
+            methods = "POST, OPTIONS" if path == "/v1/pilot/drafts" else "GET, OPTIONS"
+            self.send_header("Access-Control-Allow-Methods", methods)
+            self.send_header("Access-Control-Allow-Headers", "Authorization, Content-Type, Idempotency-Key")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
         if path == "/v1/ingestion/bundles":
             if not self._prepare_write_cors():
                 return
@@ -1041,6 +1080,142 @@ class NothingApiHandler(BaseHTTPRequestHandler):
             allow_cache=False,
         )
 
+    def _pilot_principal(self) -> AuthenticatedPrincipal | None:
+        self._cors_allowed = False
+        authenticator = self.portal_authenticator
+        if authenticator is None or not getattr(authenticator, "configured", False):
+            self._send_problem(
+                503,
+                "PILOT_PORTAL_UNAVAILABLE",
+                "Authenticated pilot submissions are not configured for this deployment.",
+            )
+            return None
+        principal = authenticator.authenticate(self.headers.get("Authorization"))
+        if principal is None:
+            self._send_problem(
+                401,
+                "UNAUTHORIZED",
+                "A valid bearer access token is required for the pilot portal.",
+                extra_headers={"WWW-Authenticate": 'Bearer realm="VERQIVIA pilot", error="invalid_token"'},
+            )
+            return None
+        if not authenticator.authorize(principal, PILOT_DRAFT_SCOPE):
+            self._send_problem(
+                403,
+                "FORBIDDEN",
+                "The access token lacks the pilot-submission permission.",
+            )
+            return None
+        return principal
+
+    def _post_pilot_draft(self) -> None:
+        principal = self._pilot_principal()
+        if principal is None:
+            return
+        content_type = (self.headers.get("Content-Type") or "").split(";", 1)[0].strip().lower()
+        if content_type != "application/json":
+            self._send_problem(415, "UNSUPPORTED_MEDIA_TYPE", "Content-Type must be application/json.")
+            return
+        content_length = self.headers.get("Content-Length")
+        if content_length is None:
+            self._send_problem(400, "CONTENT_LENGTH_REQUIRED", "Content-Length is required.")
+            return
+        try:
+            length = int(content_length)
+        except ValueError:
+            self._send_problem(400, "INVALID_CONTENT_LENGTH", "Content-Length must be a non-negative integer.")
+            return
+        if length < 0:
+            self._send_problem(400, "INVALID_CONTENT_LENGTH", "Content-Length must be a non-negative integer.")
+            return
+        if length > PILOT_DRAFT_MAX_BODY_BYTES:
+            self._send_problem(413, "PAYLOAD_TOO_LARGE", "The pilot draft exceeds the configured size limit.")
+            return
+        body = self.rfile.read(length)
+        if len(body) != length:
+            self._send_problem(400, "INCOMPLETE_REQUEST", "The request body ended before Content-Length was satisfied.")
+            return
+        idempotency_key = self.headers.get("Idempotency-Key") or ""
+        if not IDEMPOTENCY_KEY_RE.fullmatch(idempotency_key):
+            self._send_problem(400, "IDEMPOTENCY_KEY_INVALID", "A valid Idempotency-Key header is required.")
+            return
+        try:
+            draft = parse_pilot_draft(body, content_type)
+            fingerprint = hashlib.sha256(
+                json.dumps(draft, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+            ).hexdigest()
+            result = self.store.submit_pilot_draft(
+                actor=principal.actor,
+                draft_id=str(uuid.uuid4()),
+                idempotency_key=idempotency_key,
+                request_sha256=fingerprint,
+                payload=draft,
+                recorded_at=_now_iso(),
+            )
+        except OverflowError as exc:
+            self._send_problem(413, "PAYLOAD_TOO_LARGE", str(exc))
+            return
+        except TypeError as exc:
+            self._send_problem(415, "UNSUPPORTED_MEDIA_TYPE", str(exc))
+            return
+        except PilotDraftValidationError as exc:
+            self._send_problem(400, "INVALID_PILOT_DRAFT", str(exc))
+            return
+        except ConflictError as exc:
+            self._send_problem(409, "CONFLICT", str(exc))
+            return
+        except StoreError:
+            self._send_problem(503, "PILOT_PORTAL_UNAVAILABLE", "Pilot draft storage is temporarily unavailable.")
+            return
+
+        status = 200 if result["replayed"] else 201
+        self._send(
+            status,
+            {
+                "data": {
+                    "draft_id": result["draft_id"],
+                    "status": result["status"],
+                    "recorded_at": result["recorded_at"],
+                    "replayed": bool(result["replayed"]),
+                    "production_identity_created": False,
+                },
+                "meta": _meta(demo=self.store.demo, generated_at=_now_iso()),
+            },
+            allow_cache=False,
+        )
+
+    def _get_pilot_draft(self, draft_id: str, instance: str) -> None:
+        principal = self._pilot_principal()
+        if principal is None:
+            return
+        try:
+            parsed_id = uuid.UUID(draft_id)
+        except (ValueError, AttributeError):
+            self._send_problem(400, "INVALID_ID", "draft_id must be a UUID.", instance)
+            return
+        try:
+            result = self.store.get_pilot_draft(actor=principal.actor, draft_id=str(parsed_id))
+        except StoreError:
+            self._send_problem(503, "PILOT_PORTAL_UNAVAILABLE", "Pilot draft storage is temporarily unavailable.", instance)
+            return
+        if result is None:
+            self._send_problem(404, "NOT_FOUND", "The requested pilot draft does not exist.", instance)
+            return
+        self._send(
+            200,
+            {
+                "data": {
+                    "draft_id": result["draft_id"],
+                    "status": result["status"],
+                    "recorded_at": result["recorded_at"],
+                    "payload": result["payload"],
+                    "production_identity_created": False,
+                },
+                "meta": _meta(demo=self.store.demo, generated_at=_now_iso()),
+            },
+            allow_cache=False,
+        )
+
     def _post_ingestion_bundle(self) -> None:
         self._cors_allowed = False
         if not self.ingestion_authenticator.configured:
@@ -1240,6 +1415,12 @@ class NothingApiHandler(BaseHTTPRequestHandler):
 
         try:
             parts = [unquote(p) for p in path.split("/") if p]
+
+            if len(parts) == 4 and parts[:3] == ["v1", "pilot", "drafts"]:
+                if not self._prepare_write_cors():
+                    return
+                self._get_pilot_draft(parts[3], instance)
+                return
 
             if len(parts) == 3 and parts[:2] == ["v1", "identity"]:
                 self._get_identity(parts[2], instance)
@@ -1663,6 +1844,8 @@ def build_server(
     auth_mode: str | None = None,
     billing_authenticator: Any | None = None,
     billing_service: SubscriptionBillingService | None = None,
+    portal_authenticator: Any | None = None,
+    portal_token: str | None = None,
 ) -> NothingHttpServer:
     owns_store = store is None
     selected_backend = storage_backend or DEFAULT_BACKEND
@@ -1698,6 +1881,8 @@ def build_server(
 
     if selected_auth_mode == "oidc-jwt":
         ingestion_authenticator = OIDCJwtAuthenticator.from_environment()
+        if portal_authenticator is None:
+            portal_authenticator = OIDCJwtAuthenticator.from_environment(required_scope=PILOT_DRAFT_SCOPE)
         if billing_authenticator is None:
             billing_authenticator = OIDCJwtAuthenticator.from_environment(
                 required_scope=os.getenv(
@@ -1710,6 +1895,12 @@ def build_server(
             ingestion_token,
             actor=ingestion_actor,
         )
+        if portal_authenticator is None:
+            portal_authenticator = BearerAuthenticator(
+                portal_token if portal_token is not None else os.getenv("NOTHING_PORTAL_TOKEN"),
+                actor=os.getenv("NOTHING_PORTAL_ACTOR", "authenticated-pilot"),
+                scope=PILOT_DRAFT_SCOPE,
+            )
         if billing_authenticator is None:
             billing_authenticator = BearerAuthenticator(
                 os.getenv("NOTHING_BILLING_TOKEN"),
@@ -1761,6 +1952,7 @@ def build_server(
         ingestion_authenticator=ingestion_authenticator,
         billing_authenticator=billing_authenticator,
         billing_service=billing_service,
+        portal_authenticator=portal_authenticator,
     )
 
 
