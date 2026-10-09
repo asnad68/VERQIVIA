@@ -25,17 +25,23 @@ class TestActorAuthenticator:
         actors = {
             "Bearer pilot-token-a": "test-issuer#actor-a",
             "Bearer pilot-token-b": "test-issuer#actor-b",
+            "Bearer pilot-token-no-scope": "test-issuer#actor-no-scope",
         }
         actor = actors.get(authorization or "")
         if actor is None:
             return None
         subject = actor.rsplit("#", 1)[-1]
+        scopes = (
+            frozenset()
+            if authorization == "Bearer pilot-token-no-scope"
+            else frozenset({"nothing:pilot:write"})
+        )
         return AuthenticatedPrincipal(
             actor=actor,
             subject=subject,
             issuer="https://issuer.test",
             client_id="verqivia-test-client",
-            scopes=frozenset({"nothing:pilot:write"}),
+            scopes=scopes,
             claims={"sub": subject},
         )
 
@@ -148,6 +154,11 @@ class AuthenticatedPilotApiTests(unittest.TestCase):
         )
         self.assertEqual(response.status, 401)
         self.assertEqual(json.loads(body)["code"], "UNAUTHORIZED")
+
+    def test_authenticated_token_without_pilot_scope_is_rejected(self) -> None:
+        response, body = self.submit(token="Bearer pilot-token-no-scope")
+        self.assertEqual(response.status, 403)
+        self.assertEqual(json.loads(body)["code"], "FORBIDDEN")
 
     def test_authenticated_submission_can_be_read_back_by_same_actor(self) -> None:
         response, body = self.submit()
