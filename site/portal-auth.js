@@ -291,6 +291,33 @@
       browser.sessionStorage.removeItem(TRANSACTION_KEY);
     }
 
+    async function checkServer() {
+      ensureConfig();
+      const base = normalizedIssuer(config.apiBaseUrl);
+
+      async function probe(path, allowNotReady) {
+        const response = await browser.fetch(base + path, {
+          method: "GET",
+          credentials: "omit",
+          cache: "no-store",
+          redirect: "error",
+          headers: { Accept: "application/json" }
+        });
+        const body = await response.json().catch(() => null);
+        if (!body || typeof body.status !== "string") {
+          throw new Error("The API health endpoint returned an invalid response.");
+        }
+        if (!response.ok && !(allowNotReady && response.status === 503 && body.status === "not_ready")) {
+          throw new Error("The API health endpoint returned HTTP " + response.status + ".");
+        }
+        return { httpStatus: response.status, status: body.status };
+      }
+
+      const health = await probe("/healthz", false);
+      const readiness = await probe("/readyz", true);
+      return { health, readiness };
+    }
+
     async function apiRequest(path, options) {
       ensureConfig();
       if (!/^\/v1\/pilot\/drafts(?:\/[0-9a-f-]{36})?$/.test(path)) throw new Error("The portal client may only call the pilot-draft API.");
@@ -332,7 +359,7 @@
       return apiRequest("/v1/pilot/drafts/" + draftId, { method: "GET" });
     }
 
-    return { discover, login, finishCallback, getToken, logout, submitDraft, readDraft };
+    return { discover, login, finishCallback, getToken, logout, checkServer, submitDraft, readDraft };
   }
 
   return {
