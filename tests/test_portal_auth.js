@@ -101,6 +101,7 @@ test("server status probe checks health and storage readiness without sending cr
   for (const call of calls) {
     assert.equal(call.options.credentials, "omit");
     assert.equal(call.options.redirect, "error");
+    assert.equal(call.options.referrerPolicy, "no-referrer");
     assert.equal("Authorization" in (call.options.headers || {}), false);
   }
 });
