@@ -16,7 +16,7 @@ Repository and product surfaces are substantially prepared. Public production re
 | --- | --- | --- | --- |
 | Identity / claim / evidence core | READY | Repository tests + schemas + resolver | No |
 | Verify Web | READY FOR PILOT | Public demo returns expected record and cryptographic proof | No |
-| Portal / pilot workspace | READY FOR PILOT | Public workflow entry point routes companies to identity, pilot, verification and integration surfaces | No |
+| Portal / pilot workspace | INTAKE CODE READY; NOT LIVE | Authenticated OIDC/PKCE client, server health probes and HTTP contract tests exist; live API/OIDC values and storage service are not configured | Yes for server submission |
 | Cryptographic proof | READY FOR PILOT | Valid Ed25519 demo proof + registry lifecycle checks | No |
 | Portable profile | READY FOR PILOT | Schema/OpenAPI/profile parity | No |
 | API contract | READY FOR PILOT | OpenAPI + reference implementation + tests | No |
