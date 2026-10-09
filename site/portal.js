@@ -10,33 +10,20 @@
   }
 
   function buildDraft() {
-    const name = byId("company-name").value.trim();
-    if (!name) {
-      throw new Error("Business / brand name is required.");
+    const builder = window.VERQIVIA_PORTAL_DRAFT;
+    if (!builder || typeof builder.buildPortalDraft !== "function") {
+      throw new Error("The local draft validator is unavailable. Reload the page and try again.");
     }
-    const claims = selectedClaims();
-    if (!claims.length) {
-      throw new Error("Select at least one pilot claim.");
-    }
-
-    return {
-      stage: "PILOT_DRAFT",
-      protocol_version: "0.1",
-      generated_at: new Date().toISOString(),
-      identity: {
-        subject: {
-          name,
-          type: byId("company-type").value
-        },
-        official_website: byId("official-website").value.trim() || null,
-        official_domain: byId("official-domain").value.trim() || null,
-        description: byId("public-description").value.trim() || null
-      },
-      pilot: {
-        claims,
-        evidence_boundary: byId("evidence-notes").value.trim() || null
-      }
-    };
+    return builder.buildPortalDraft({
+      name: byId("company-name").value,
+      type: byId("company-type").value,
+      website: byId("official-website").value,
+      domain: byId("official-domain").value,
+      channels: byId("official-channels").value,
+      description: byId("public-description").value,
+      claims: selectedClaims(),
+      evidenceBoundary: byId("evidence-notes").value
+    });
   }
 
   function setStatus(message, ok) {
@@ -64,7 +51,12 @@
     byId("portal-form").reset();
     byId("portal-preview").textContent = JSON.stringify({
       stage: "PILOT_DRAFT",
-      identity: null
+      registration: null,
+      pilot: null,
+      readiness: {
+        production_identity_created: false,
+        server_submission: false
+      }
     }, null, 2);
     setStatus("Draft cleared. Nothing was sent to a server.", false);
   });
