@@ -195,6 +195,22 @@ class AuthenticatedPilotApiTests(unittest.TestCase):
         self.assertEqual(other_response.status, 404)
         self.assertEqual(json.loads(other_body)["code"], "NOT_FOUND")
 
+    def test_browser_preflight_allows_only_required_portal_headers(self) -> None:
+        response, body = self.request(
+            "OPTIONS",
+            "/v1/pilot/drafts",
+            token=None,
+            origin="https://portal.example",
+        )
+        self.assertEqual(response.status, 204)
+        self.assertEqual(response.getheader("Access-Control-Allow-Origin"), "https://portal.example")
+        self.assertEqual(response.getheader("Access-Control-Allow-Methods"), "POST, OPTIONS")
+        self.assertEqual(
+            set(response.getheader("Access-Control-Allow-Headers").lower().split(", ")),
+            {"authorization", "content-type", "idempotency-key"},
+        )
+        self.assertEqual(body, b"")
+
     def test_unapproved_browser_origin_is_rejected(self) -> None:
         response, body = self.request(
             "POST",
