@@ -1415,6 +1415,8 @@ class NothingApiHandler(BaseHTTPRequestHandler):
             parts = [unquote(p) for p in path.split("/") if p]
 
             if len(parts) == 4 and parts[:3] == ["v1", "pilot", "drafts"]:
+                if not self._prepare_write_cors():
+                    return
                 self._get_pilot_draft(parts[3], instance)
                 return
 
