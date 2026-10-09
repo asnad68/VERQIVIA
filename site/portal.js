@@ -242,6 +242,14 @@
       refreshControls();
       return;
     }
+    let authCallbackError = "";
+    try {
+      // Consume and remove OIDC callback parameters before making any other network request.
+      await client.finishCallback();
+    } catch (error) {
+      authCallbackError = error.message || "Sign-in could not be completed.";
+    }
+
     try {
       const state = await client.checkServer();
       if (state.health.status === "ok" && state.readiness.status === "ready") {
@@ -253,15 +261,11 @@
       setServerStatus(error.message || "Could not reach the configured API. Check its URL, availability and read-only CORS settings.", "bad");
     }
 
-    try {
-      const callback = await client.finishCallback();
-      if (callback.handled) {
-        setServerStatus("Identity provider sign-in completed. API access is scoped to pilot intake only.", "ok");
-      }
-    } catch (error) {
-      setServerStatus(error.message || "Sign-in could not be completed.", "bad");
-    }
     refreshControls();
+    if (authCallbackError) {
+      byId("auth-status").textContent = authCallbackError;
+      byId("auth-status").className = "status portal-status status-bad";
+    }
   }
 
   refreshControls();
