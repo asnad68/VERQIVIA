@@ -22,7 +22,7 @@ Machine-readable discovery/profile
 
 ## Repository deployment assets
 
-- `render.yaml` — deployment blueprint for API, static site and PostgreSQL target.
+- `render.yaml` — deployment blueprint for the API service and PostgreSQL target. It does **not** create the GitHub Pages static site.
 - `Dockerfile` — production API container.
 - `.env.example` — configuration contract.
 - `api/openapi.json` — public API contract.
@@ -33,8 +33,9 @@ Machine-readable discovery/profile
 Use an authorized Render workspace and apply the root `render.yaml`. The blueprint defines:
 
 - `verqivia-api` — Docker web service;
-- `verqivia-postgres` — PostgreSQL target;
-- GitHub Pages remains the single canonical public website.
+- `verqivia-postgres` — PostgreSQL target.
+
+GitHub Pages remains the separate canonical public website. The public Portal currently creates a local draft only and does not submit registration data to this API.
 
 Do not expose the database publicly. Keep the service topology single-tenant for the current release.
 
