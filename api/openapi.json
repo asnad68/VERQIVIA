@@ -3,8 +3,8 @@
   "info": {
     "title": "VERQIVIA Verification API",
     "version": "1.0.0",
-    "summary": "VERQIVIA verification, authenticated ingestion and billing API",
-    "description": "Deployment-neutral API contract for resolving a VERQIVIA identity into claims, evidence references, verification events and versioned procedures. The API does not turn structural validity into a universal trust score. Production authenticated writes use JWT access tokens and scope authorization. Authenticated billing provides a customer-scoped price catalog, invoice creation and entitlement reads; settlement itself is performed by the receive-only payment observation pipeline and PostgreSQL billing core."
+    "summary": "VERQIVIA verification, authenticated pilot intake, ingestion and billing API",
+    "description": "Deployment-neutral API contract for resolving a VERQIVIA identity into claims, evidence references, verification events and versioned procedures. The API does not turn structural validity into a universal trust score. Production authenticated writes use JWT access tokens and scope authorization. Authenticated billing provides a customer-scoped price catalog, invoice creation and entitlement reads; settlement itself is performed by the receive-only payment observation pipeline and PostgreSQL billing core. Authenticated pilot intake stores review drafts only and never creates an official identity."
   },
   "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
   "paths": {
@@ -1110,6 +1110,243 @@
           },
           "503": {
             "description": "The profile could not be built from the current verification graph.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/pilot/drafts": {
+      "post": {
+        "tags": [
+          "Pilot intake"
+        ],
+        "summary": "Submit an authenticated pilot intake draft",
+        "description": "Requires the dedicated nothing:pilot:write permission. The server repeats validation, persists the draft under the authenticated actor and supports idempotent retries. Acceptance means received for controlled review only; no official identity or verified claim is created.",
+        "operationId": "submitPilotDraft",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PilotDraftRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Existing submission returned for an idempotent retry.",
+            "headers": {
+              "Idempotent-Replay": {
+                "description": "True when a stored idempotent result was replayed.",
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "true"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PilotDraftSubmitResponse"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Pilot intake draft stored.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PilotDraftSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid draft or idempotency key.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Bearer credential is missing or invalid.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Token lacks the pilot-intake permission.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency key was reused with a different payload.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request exceeds the pilot-draft body size limit.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content type is not application/json.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Pilot intake rate limit exceeded.",
+            "headers": {
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Pilot intake authentication or persistence is not configured/available.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/pilot/drafts/{draft_id}": {
+      "get": {
+        "tags": [
+          "Pilot intake"
+        ],
+        "summary": "Read an own pilot intake draft",
+        "description": "Requires the dedicated nothing:pilot:write permission. Records are scoped to the authenticated actor; another actor's record is returned as not found.",
+        "operationId": "getPilotDraft",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "description": "UUID returned by the pilot intake endpoint.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Private pilot intake record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PilotDraftReadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid draft UUID.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Bearer credential is missing or invalid.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Token lacks the pilot-intake permission.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Draft does not exist or belongs to another actor.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Pilot intake authentication or persistence is not configured/available.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3009,6 +3246,243 @@
                 }
               }
             }
+          }
+        }
+      },
+      "PilotDraftRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "stage",
+          "protocol_version",
+          "generated_at",
+          "registration",
+          "pilot",
+          "readiness"
+        ],
+        "properties": {
+          "stage": {
+            "type": "string",
+            "const": "PILOT_DRAFT"
+          },
+          "protocol_version": {
+            "type": "string",
+            "const": "0.1"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "registration": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "type",
+              "website",
+              "domains",
+              "channels",
+              "description"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 180
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "business",
+                  "brand",
+                  "digital_channel"
+                ]
+              },
+              "website": {
+                "type": "string",
+                "maxLength": 500,
+                "format": "uri"
+              },
+              "domains": {
+                "type": "array",
+                "maxItems": 50,
+                "items": {
+                  "type": "string",
+                  "maxLength": 253
+                }
+              },
+              "channels": {
+                "type": "array",
+                "maxItems": 50,
+                "items": {
+                  "type": "string",
+                  "maxLength": 500,
+                  "format": "uri"
+                }
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 2000
+              }
+            }
+          },
+          "pilot": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "requested_claims",
+              "evidence_boundary"
+            ],
+            "properties": {
+              "requested_claims": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 4,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "official_domain",
+                    "official_website",
+                    "authorized_representative",
+                    "business_relationship"
+                  ]
+                }
+              },
+              "evidence_boundary": {
+                "type": "string",
+                "maxLength": 3000
+              }
+            }
+          },
+          "readiness": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "production_identity_created",
+              "server_submission",
+              "note"
+            ],
+            "properties": {
+              "production_identity_created": {
+                "type": "boolean",
+                "const": false
+              },
+              "server_submission": {
+                "type": "boolean",
+                "const": false
+              },
+              "note": {
+                "type": "string",
+                "maxLength": 500
+              }
+            }
+          }
+        }
+      },
+      "PilotDraftSubmitData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "draft_id",
+          "status",
+          "recorded_at",
+          "replayed",
+          "production_identity_created"
+        ],
+        "properties": {
+          "draft_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "RECEIVED",
+              "UNDER_REVIEW",
+              "ACCEPTED",
+              "DECLINED"
+            ]
+          },
+          "recorded_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "replayed": {
+            "type": "boolean"
+          },
+          "production_identity_created": {
+            "type": "boolean",
+            "const": false
+          }
+        }
+      },
+      "PilotDraftReadData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "draft_id",
+          "status",
+          "recorded_at",
+          "payload",
+          "production_identity_created"
+        ],
+        "properties": {
+          "draft_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "RECEIVED",
+              "UNDER_REVIEW",
+              "ACCEPTED",
+              "DECLINED"
+            ]
+          },
+          "recorded_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/PilotDraftRequest"
+          },
+          "production_identity_created": {
+            "type": "boolean",
+            "const": false
+          }
+        }
+      },
+      "PilotDraftSubmitResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PilotDraftSubmitData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ApiMeta"
+          }
+        }
+      },
+      "PilotDraftReadResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PilotDraftReadData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ApiMeta"
           }
         }
       }
