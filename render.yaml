@@ -29,11 +29,10 @@ services:
       # Runtime must use the restricted nothing_app credential configured in Render.
       - key: NOTHING_POSTGRES_DSN
         sync: false
-      # Pre-deploy migration uses the database's migration-owner credential.
+      # Fill both connections from the credentials assigned in Render.
+      # Never point the application at the migration-owner credential.
       - key: NOTHING_POSTGRES_MIGRATOR_DSN
-        fromDatabase:
-          name: verqivia-postgres
-          property: connectionString
+        sync: false
       - key: NOTHING_AUTH_ISSUER
         sync: false
       - key: NOTHING_AUTH_AUDIENCE
