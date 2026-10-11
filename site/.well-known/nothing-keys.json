@@ -14,6 +14,19 @@
           "valid_from": "2026-09-27T00:00:00Z"
         }
       ]
+    },
+    {
+      "issuer_id": "VERQIVIA-DEMO-ISSUER",
+      "status": "DEMO",
+      "keys": [
+        {
+          "key_id": "verqivia-demo-key-1",
+          "type": "Ed25519",
+          "public_key": "-SQKa7E8Ah-58yfoG4KlXzSeTclIXg-n1xswqQ4Wc24",
+          "status": "ACTIVE",
+          "valid_from": "2026-10-04T00:00:00Z"
+        }
+      ]
     }
   ]
 }
