@@ -24,6 +24,8 @@ COPY procedures ./procedures
 COPY api ./api
 COPY config ./config
 COPY scripts ./scripts
+COPY trust ./trust
+COPY site/data ./site/data
 
 RUN chown -R nothing:nothing /app
 
