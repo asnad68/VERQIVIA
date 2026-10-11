@@ -137,6 +137,10 @@ def main() -> int:
     for required_path in ("COPY trust ./trust", "COPY site/data ./site/data"):
         if required_path not in dockerfile:
             raise AssertionError(f"Docker image is missing required runtime data: {required_path}")
+    dockerignore = (ROOT / ".dockerignore").read_text(encoding="utf-8")
+    for required_exception in ("!site/", "!site/data/", "!site/data/*.json"):
+        if required_exception not in dockerignore:
+            raise AssertionError(f"Docker ignore rules exclude required synthetic fixtures: {required_exception}")
     render_text = (ROOT / "render.yaml").read_text(encoding="utf-8")
     if "python scripts/migrate_postgres.py && python scripts/seed_synthetic_demo.py" not in render_text:
         raise AssertionError("Render pre-deploy command must migrate and seed the synthetic demo fixture")
