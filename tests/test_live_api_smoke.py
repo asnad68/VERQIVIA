@@ -40,9 +40,9 @@ class LiveSmokeBehaviorTests(unittest.TestCase):
             if path == "/readyz":
                 return 200, {}, b'{"status":"ready","api_version":"1"}'
             if path == "/v1/identity/NTH-000001":
-                return 200, {}, b'{"data":{"id":"NTH-000001"},"meta":{"demo":true}}'
+                return 200, {}, b'{"data":{"id":"NTH-000001","subject":{"name":"VERQIVIA Experimental Identity"},"claims":[{"statement":"This record is an experimental demonstration of the VERQIVIA identity model."}]},"meta":{"demo":false}}'
             if path == "/v1/identity/NTH-000001/profile":
-                return 200, {}, b'{"data":{"id":"NTH-000001","profile_version":"0.2"},"meta":{"demo":true}}'
+                return 200, {}, b'{"data":{"verqivia_id":"NTH-000001","subject":{"name":"VERQIVIA Experimental Identity"},"claims":[{"statement":"This record is an experimental demonstration of the VERQIVIA identity model."}]},"meta":{"demo":false}}'
             if path == "/v1/pilot/drafts" and method == "OPTIONS":
                 if browser_origin == "https://unapproved.invalid":
                     return blocked_origin_status, {}, b'{"status":403}'
@@ -79,8 +79,12 @@ class LiveSmokeBehaviorTests(unittest.TestCase):
             )
             if path == "/v1/identity/NTH-000001":
                 return status, headers, json.dumps({
-                    "data": {"id": "NTH-000001"},
-                    "meta": {"demo": False},
+                    "data": {
+                        "id": "NTH-000001",
+                        "subject": {"name": "Synthetic Test Placeholder"},
+                        "claims": [{"statement": "Ordinary placeholder claim."}],
+                    },
+                    "meta": {"demo": True},
                 }).encode()
             return status, headers, body
 
