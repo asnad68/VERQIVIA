@@ -16,7 +16,7 @@ The script checks:
 
 1. `/healthz` returns HTTP 200 and `status=ok`.
 2. `/readyz` returns HTTP 200 and `status=ready`.
-3. `NTH-000001` is readable and explicitly marked as synthetic demo data.
+3. `NTH-000001` is readable and contains the explicit experimental-demo claim marker. This works with both the file-system demo store and PostgreSQL, whose response metadata correctly reports demo=false.
 4. The portable profile endpoint works and marks its data as synthetic.
 5. The published Portal origin passes CORS preflight.
 6. An unapproved browser origin is rejected.
