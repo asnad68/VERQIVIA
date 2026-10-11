@@ -14,7 +14,7 @@ services:
     branch: main
     autoDeployTrigger: checksPass
     healthCheckPath: /readyz
-    preDeployCommand: python scripts/migrate_postgres.py
+    preDeployCommand: python scripts/migrate_postgres.py && python scripts/seed_synthetic_demo.py
     envVars:
       - key: NOTHING_STORAGE_BACKEND
         value: postgres
