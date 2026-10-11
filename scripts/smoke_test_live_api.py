@@ -63,6 +63,10 @@ def request_api(
     body = None
     if payload is not None:
         headers["Content-Type"] = "application/json"
+        if method.upper() == "POST":
+            # This script only posts a synthetic pilot draft; use a valid key so
+            # a denial cannot be explained by a malformed idempotency header.
+            headers["Idempotency-Key"] = "11111111-1111-4111-8111-111111111111"
         body = json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
     req = Request(f"{api_origin}{path}", data=body, headers=headers, method=method)
     try:
