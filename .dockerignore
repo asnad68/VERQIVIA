@@ -13,3 +13,8 @@ docs/
 .env
 .env.*
 !.env.example
+
+# Only the public JSON fixtures needed by the API's explicit synthetic seed are included.
+!site/
+!site/data/
+!site/data/*.json
