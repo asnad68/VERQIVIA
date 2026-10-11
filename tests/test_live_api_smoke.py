@@ -49,7 +49,6 @@ class LiveSmokeBehaviorTests(unittest.TestCase):
                 return 204, {"Access-Control-Allow-Origin": "https://asnad68.github.io"}, b""
             if path == "/v1/pilot/drafts" and method == "POST":
                 self.assertIsNotNone(payload)
-                self.assertNotIn("Authorization", {})  # The test request is deliberately unauthenticated.
                 return unauthenticated_write_status, {}, b'{"status":"denied"}'
             raise AssertionError(f"Unexpected smoke-test request: {method} {path}")
 
