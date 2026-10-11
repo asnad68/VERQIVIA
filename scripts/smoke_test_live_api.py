@@ -97,6 +97,25 @@ def _header(headers: Any, name: str) -> str | None:
     return getter(name) or getter(name.lower())
 
 
+def _is_synthetic_record(data: Any) -> bool:
+    """Recognize the published demo by its explicit experimental claim marker.
+
+    The production Postgres store sets meta.demo=false even when reading this
+    deliberately seeded synthetic record, so metadata alone is not sufficient.
+    """
+    if not isinstance(data, dict):
+        return False
+    subject = data.get("subject")
+    claims = data.get("claims")
+    if not isinstance(subject, dict) or not isinstance(claims, list):
+        return False
+    return any(
+        isinstance(claim, dict)
+        and "experimental demonstration" in str(claim.get("statement", "")).lower()
+        for claim in claims
+    )
+
+
 def run_smoke_test(
     api_origin: str,
     request: Callable[..., tuple[int, Any, bytes]] = request_api,
@@ -119,19 +138,21 @@ def run_smoke_test(
 
     status, _, body = request(origin, f"/v1/identity/{DEMO_ID}")
     identity = parse_json(status, body, f"/v1/identity/{DEMO_ID}")
-    if status != 200 or identity.get("data", {}).get("id") != DEMO_ID:
+    identity_data = identity.get("data")
+    if status != 200 or not isinstance(identity_data, dict) or identity_data.get("id") != DEMO_ID:
         raise SmokeTestError("The synthetic public identity endpoint failed or returned the wrong ID.")
-    if identity.get("meta", {}).get("demo") is not True:
-        raise SmokeTestError("The smoke test expected synthetic demo data; refusing to inspect real records.")
+    if not _is_synthetic_record(identity_data):
+        raise SmokeTestError("The identity response lacks the explicit experimental-demo claim marker.")
     passed.append("synthetic identity read")
 
     profile_path = f"/v1/identity/{DEMO_ID}/profile"
     status, _, body = request(origin, profile_path)
     profile = parse_json(status, body, profile_path)
-    if status != 200 or not isinstance(profile.get("data"), dict):
-        raise SmokeTestError("The portable verification profile endpoint failed.")
-    if profile.get("meta", {}).get("demo") is not True:
-        raise SmokeTestError("The portable profile did not identify itself as synthetic demo data.")
+    profile_data = profile.get("data")
+    if status != 200 or not isinstance(profile_data, dict) or profile_data.get("verqivia_id") != DEMO_ID:
+        raise SmokeTestError("The portable verification profile endpoint failed or returned the wrong ID.")
+    if not _is_synthetic_record(profile_data):
+        raise SmokeTestError("The portable profile lacks the explicit experimental-demo claim marker.")
     passed.append("synthetic portable profile")
 
     status, headers, _ = request(
