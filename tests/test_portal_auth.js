@@ -1,8 +1,10 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const { generateKeyPairSync, sign, webcrypto } = require("node:crypto");
 const {
   validateConfig,
   validateAccessToken,
+  validateIdToken,
   parseJwt
 } = require("../site/portal-auth.js");
 
@@ -20,6 +22,30 @@ function encodeJson(value) {
 
 function fakeJwt(header, claims) {
   return encodeJson(header) + "." + encodeJson(claims) + ".not-a-real-signature";
+}
+
+const testKeys = generateKeyPairSync("rsa", { modulusLength: 2048 });
+const publicJwk = {
+  ...testKeys.publicKey.export({ format: "jwk" }),
+  kid: "portal-auth-test-key",
+  use: "sig",
+  alg: "RS256"
+};
+
+function signedJwt(header, claims, privateKey = testKeys.privateKey) {
+  const input = encodeJson(header) + "." + encodeJson(claims);
+  return input + "." + sign("RSA-SHA256", Buffer.from(input), privateKey).toString("base64url");
+}
+
+function validIdClaims(nonce = "expected-nonce") {
+  return {
+    iss: "https://identity.verqivia.example",
+    sub: "pilot-user-123",
+    aud: "verqivia-public-client",
+    exp: 1_800_000_900,
+    iat: 1_800_000_000,
+    nonce
+  };
 }
 
 function validClaims() {
@@ -73,6 +99,65 @@ test("access-token contract rejects wrong token type, audience and scope", () =>
   assert.throws(
     () => validateAccessToken(fakeJwt(goodHeader, { ...validClaims(), scope: "openid" }), config, now),
     /permission/i
+  );
+  assert.throws(
+    () => validateAccessToken(fakeJwt(goodHeader, { ...validClaims(), client_id: "another-client" }), config, now),
+    /client_id/i
+  );
+});
+
+
+test("ID token requires a valid RS256 signature and all OIDC transaction bindings", async () => {
+  const token = signedJwt(
+    { alg: "RS256", kid: "portal-auth-test-key", typ: "JWT" },
+    validIdClaims()
+  );
+  const claims = await validateIdToken(
+    token,
+    config,
+    "expected-nonce",
+    { keys: [publicJwk] },
+    webcrypto,
+    1_800_000_100
+  );
+  assert.equal(claims.sub, "pilot-user-123");
+
+  await assert.rejects(
+    validateIdToken(token, config, "wrong-nonce", { keys: [publicJwk] }, webcrypto, 1_800_000_100),
+    /nonce/i
+  );
+  await assert.rejects(
+    validateIdToken(
+      signedJwt({ alg: "RS256", kid: "portal-auth-test-key" }, { ...validIdClaims(), aud: "wrong-client" }),
+      config,
+      "expected-nonce",
+      { keys: [publicJwk] },
+      webcrypto,
+      1_800_000_100
+    ),
+    /audience/i
+  );
+  await assert.rejects(
+    validateIdToken(
+      token.slice(0, token.lastIndexOf(".") + 1) + Buffer.from("tampered").toString("base64url"),
+      config,
+      "expected-nonce",
+      { keys: [publicJwk] },
+      webcrypto,
+      1_800_000_100
+    ),
+    /signature/i
+  );
+});
+
+test("ID token rejects duplicate or invalid authorized-party bindings", async () => {
+  const token = signedJwt(
+    { alg: "RS256", kid: "portal-auth-test-key" },
+    { ...validIdClaims(), aud: ["verqivia-public-client", "another-client"], azp: "another-client" }
+  );
+  await assert.rejects(
+    validateIdToken(token, config, "expected-nonce", { keys: [publicJwk] }, webcrypto, 1_800_000_100),
+    /authorized party/i
   );
 });
 
