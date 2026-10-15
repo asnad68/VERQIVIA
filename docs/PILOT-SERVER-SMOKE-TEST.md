@@ -6,6 +6,12 @@ The repository contains the authenticated Portal/API flow and automated local HT
 
 Do not enter real company data until the privacy, retention, access-control and legal review is complete. Use synthetic data during the first live smoke test. Payments, public identity issuance, wallet authorization and general enrollment must remain disabled.
 
+### Run the unauthenticated live smoke gate
+
+After an API has been deployed, open GitHub **Actions → VERQIVIA Live API Smoke Test → Run workflow** and enter only the API's bare HTTPS origin, for example `https://your-api.example` (no path, credentials or token). This manual workflow checks health/readiness, the public synthetic example, the approved Portal CORS origin, rejection of an unapproved origin, and—critically—denial of an unauthenticated pilot write. It uses synthetic data and requires no secrets.
+
+This is a **pre-authentication smoke gate only**. It does not prove successful authorized login, submission/read-back, cross-actor isolation, database restore, or production readiness. Keep the pilot closed to external users until the remaining gates below are verified.
+
 ## Gate 0 — Deployment prerequisites
 
 Before the browser can connect, the operator must provision:
