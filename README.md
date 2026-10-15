@@ -80,6 +80,7 @@ See:
 - `schema/portable-verification-profile.schema.json`
 - `examples/portable-profile.example.json`
 - `docs/PORTAL-PROTOTYPE.md` — what the server-connected Portal implements and what is still blocked by external setup.
+- `docs/INDUSTRY-BENCHMARK-AND-ROADMAP.md` — standards and platform benchmark, design decisions, weaknesses to avoid, and prioritized integration roadmap.
 - `docs/PILOT-SERVER-SMOKE-TEST.md` — step-by-step live pilot connection and negative security tests.
 
 ### Why this can matter to a large company
