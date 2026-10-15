@@ -21,7 +21,7 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
-from urllib.parse import unquote, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 from src.nothing_auth import (
     AuthenticatedPrincipal,
@@ -62,6 +62,12 @@ from src.nothing_pilot import (
     PILOT_DRAFT_MAX_BODY_BYTES,
     PilotDraftValidationError,
     parse_pilot_draft,
+)
+
+from src.nothing_gleif import (
+    GleifQueryError,
+    GleifSourceUnavailable,
+    search_gleif_entities,
 )
 
 API_VERSION = "1"
@@ -363,6 +369,8 @@ BILLING_RATE_LIMITER = RateLimiter(
     BILLING_RATE_LIMIT_WINDOW_SECONDS,
     BILLING_RATE_LIMIT_MAX_REQUESTS,
 )
+
+GLEIF_RATE_LIMITER = RateLimiter(60, 10, max_keys=5000)
 
 
 class NothingHttpServer(ThreadingHTTPServer):
@@ -1415,6 +1423,60 @@ class NothingApiHandler(BaseHTTPRequestHandler):
 
         try:
             parts = [unquote(p) for p in path.split("/") if p]
+
+            if path == "/v1/sources/gleif/search":
+                if not GLEIF_RATE_LIMITER.allow(f"gleif:{self._client_key()}"):
+                    self._send_problem(
+                        429,
+                        "RATE_LIMITED",
+                        "Too many GLEIF reference lookups.",
+                        instance,
+                        retry_after=60,
+                    )
+                    return
+                try:
+                    query = parse_qs(
+                        parsed.query,
+                        keep_blank_values=True,
+                        max_num_fields=5,
+                    )
+                except ValueError:
+                    self._send_problem(
+                        400, "INVALID_QUERY", "Only one name query is allowed.", instance
+                    )
+                    return
+                names = query.get("name", [])
+                if set(query) != {"name"} or len(names) != 1:
+                    self._send_problem(
+                        400, "INVALID_QUERY",
+                        "Provide exactly one name query parameter.", instance
+                    )
+                    return
+                try:
+                    result = search_gleif_entities(names[0])
+                except GleifQueryError as exc:
+                    self._send_problem(400, "INVALID_QUERY", str(exc), instance)
+                    return
+                except GleifSourceUnavailable:
+                    self._send_problem(
+                        503,
+                        "SOURCE_UNAVAILABLE",
+                        "The GLEIF reference source is temporarily unavailable.",
+                        instance,
+                    )
+                    return
+                self._send(
+                    200,
+                    {
+                        "data": result,
+                        "meta": _meta(
+                            demo=self.store.demo,
+                            generated_at=result["observed_at"],
+                        ),
+                    },
+                    allow_cache=False,
+                )
+                return
 
             if len(parts) == 4 and parts[:3] == ["v1", "pilot", "drafts"]:
                 if not self._prepare_write_cors():
