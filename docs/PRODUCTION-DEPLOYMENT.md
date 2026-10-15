@@ -167,7 +167,7 @@ Crypto settlement remains separately gated. It must not be enabled merely becaus
 
 ## 10. Current boundary
 
-**Environment check (2026-10-09):** the connected Render workspace has no VERQIVIA API service and no PostgreSQL instance. This runbook describes the target deployment, not a currently live server. Do not fill the Portal's public configuration or invite test users until the API, persistent database and OIDC provider have actually been provisioned and smoke-tested.
+**Environment check (2026-10-15):** the connected Render workspace has no VERQIVIA API service and no PostgreSQL instance. This runbook describes the target deployment, not a currently live server. Do not fill the Portal's public configuration or invite test users until the API, persistent database and OIDC provider have actually been provisioned and smoke-tested.
 
 At repository level, VERQIVIA is suitable for controlled pilot/review and early commercial discussions.
 
