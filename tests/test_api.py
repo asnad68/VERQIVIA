@@ -2,6 +2,7 @@ import http.client
 import json
 import threading
 import unittest
+from unittest.mock import patch
 
 from src.nothing_api import AuthConfigurationError, build_server
 
@@ -271,6 +272,48 @@ class ReferenceApiHttpTests(unittest.TestCase):
             self.assertEqual(handler._client_key(), "203.0.113.99")
         finally:
             api_module.TRUST_PROXY_HEADERS = old
+
+    def test_gleif_search_endpoint_exposes_source_provenance_and_caution(self) -> None:
+        from src.nothing_gleif import SOURCE_NAME, GleifSourceUnavailable
+
+        fixture = {
+            "source": SOURCE_NAME,
+            "source_url": "https://api.gleif.org/api/v1/lei-records",
+            "query": "Example Holdings",
+            "observed_at": "2026-10-15T00:00:00Z",
+            "result_count": 0,
+            "results": [],
+            "cache_hit": False,
+            "interpretation": "A name match does not prove authority or general trustworthiness.",
+        }
+        with patch("src.nothing_api.search_gleif_entities", return_value=fixture) as lookup:
+            response, body = self.request(
+                "/v1/sources/gleif/search?name=Example%20Holdings"
+            )
+        self.assertEqual(response.status, 200)
+        payload = json.loads(body)
+        self.assertEqual(payload["data"]["source"], SOURCE_NAME)
+        self.assertIn("does not prove", payload["data"]["interpretation"])
+        lookup.assert_called_once_with("Example Holdings")
+
+    def test_gleif_search_requires_one_name_parameter(self) -> None:
+        with patch("src.nothing_api.search_gleif_entities") as lookup:
+            response, body = self.request("/v1/sources/gleif/search?name=One&name=Two")
+        self.assertEqual(response.status, 400)
+        self.assertEqual(json.loads(body)["code"], "INVALID_QUERY")
+        lookup.assert_not_called()
+
+    def test_gleif_upstream_failure_returns_sanitized_503(self) -> None:
+        from src.nothing_gleif import GleifSourceUnavailable
+
+        with patch(
+            "src.nothing_api.search_gleif_entities",
+            side_effect=GleifSourceUnavailable("private upstream detail"),
+        ):
+            response, body = self.request("/v1/sources/gleif/search?name=Example%20Holdings")
+        self.assertEqual(response.status, 503)
+        self.assertEqual(json.loads(body)["code"], "SOURCE_UNAVAILABLE")
+        self.assertNotIn("private upstream detail", body.decode("utf-8"))
 
 if __name__ == "__main__":
     unittest.main()
