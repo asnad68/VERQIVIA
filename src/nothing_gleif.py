@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import re
+from copy import deepcopy
 import threading
 import time
 from collections import OrderedDict
@@ -69,7 +70,7 @@ def _fetch_json(url: str, timeout: float = UPSTREAM_TIMEOUT_SECONDS) -> dict[str
             if getattr(response, "status", 200) != 200:
                 raise GleifSourceUnavailable("GLEIF returned an unsuccessful response")
             body = response.read(MAX_RESPONSE_BYTES + 1)
-    except (HTTPError, URLError, TimeoutError, OSError) as exc:
+    except (HTTPError, URLError, TimeoutError, OSError, ValueError) as exc:
         raise GleifSourceUnavailable("GLEIF reference data is temporarily unavailable") from exc
     if len(body) > MAX_RESPONSE_BYTES:
         raise GleifSourceUnavailable("GLEIF response exceeded the allowed size")
@@ -141,7 +142,7 @@ def search_gleif_entities(name: str, *, now: float | None = None) -> dict[str, A
         cached = _CACHE.get(cache_key)
         if cached and current - cached[0] < CACHE_TTL_SECONDS:
             _CACHE.move_to_end(cache_key)
-            response = dict(cached[1])
+            response = deepcopy(cached[1])
             response["query"] = query
             response["cache_hit"] = True
             return response
@@ -171,7 +172,7 @@ def search_gleif_entities(name: str, *, now: float | None = None) -> dict[str, A
         ),
     }
     with _CACHE_LOCK:
-        _CACHE[cache_key] = (current, dict(result))
+        _CACHE[cache_key] = (current, deepcopy(result))
         _CACHE.move_to_end(cache_key)
         while len(_CACHE) > CACHE_MAX_ENTRIES:
             _CACHE.popitem(last=False)
