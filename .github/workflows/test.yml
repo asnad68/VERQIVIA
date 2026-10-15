@@ -39,6 +39,7 @@ jobs:
         run: |
           ruby -e 'require "yaml"; d = YAML.load_file("render.yaml"); raise "render.yaml must be a mapping" unless d.is_a?(Hash)'
           ruby -e 'require "yaml"; d = YAML.load_file("render.yaml"); (d.fetch("services", []) + d.fetch("databases", [])).each { |item| item.fetch("envVars", []).each { |env| value = env["value"]; raise "envVars.value must be a string for #{env["key"]}" if env.key?("value") && !value.is_a?(String) } }'
+          ruby -e 'require "yaml"; d = YAML.load_file(".github/workflows/live-api-smoke.yml"); raise "live API smoke workflow must be a mapping" unless d.is_a?(Hash)'
 
       - name: Compile Python sources
         run: python -m compileall -q src scripts tests
