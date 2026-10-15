@@ -99,13 +99,101 @@
     for (const key of ["sub", "jti", "client_id"]) {
       if (typeof claims[key] !== "string" || !claims[key]) throw new Error("The access token is missing required claim: " + key + ".");
     }
+    if (claims.client_id !== String(config.oidcClientId || "").trim()) {
+      throw new Error("Access-token client_id does not match the configured Portal client.");
+    }
     if (!Number.isFinite(claims.exp) || !Number.isFinite(claims.iat)) {
       throw new Error("Access token must include numeric exp and iat claims.");
+    }
+    if (claims.nbf !== undefined && (!Number.isFinite(claims.nbf) || claims.nbf > nowSeconds + 60)) {
+      throw new Error("Access token is not yet valid.");
     }
     if (claims.exp <= nowSeconds || claims.iat > nowSeconds + 60) throw new Error("The access token is expired or not yet valid.");
     if (typeof claims.scope !== "string" || !claims.scope.split(/\s+/).includes(REQUIRED_SCOPE)) {
       throw new Error("Access token does not include the " + REQUIRED_SCOPE + " permission.");
     }
+    return claims;
+  }
+
+  async function validateIdToken(token, config, expectedNonce, jwksDocument, cryptoApi, nowSeconds) {
+    const parts = String(token || "").split(".");
+    if (parts.length !== 3) throw new Error("The identity provider returned an invalid ID token.");
+    const parsed = parseJwt(token);
+    const header = parsed.header;
+    const claims = parsed.claims;
+    const clientId = String(config.oidcClientId || "").trim();
+
+    if (header.alg !== "RS256" || typeof header.kid !== "string" || !header.kid) {
+      throw new Error("The ID token must use a keyed RS256 signature.");
+    }
+    if (normalizedIssuer(claims.iss) !== normalizedIssuer(config.oidcIssuer)) {
+      throw new Error("ID-token issuer does not match the configured issuer.");
+    }
+    const audiences = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
+    if (!audiences.includes(clientId)) throw new Error("ID-token audience does not match the configured Portal client.");
+    if ((audiences.length > 1 || claims.azp !== undefined) && claims.azp !== clientId) {
+      throw new Error("ID-token authorized party does not match the configured Portal client.");
+    }
+    if (typeof claims.sub !== "string" || !claims.sub ||
+        typeof claims.nonce !== "string" || claims.nonce !== expectedNonce) {
+      throw new Error("ID-token subject or nonce is invalid.");
+    }
+    if (!Number.isFinite(claims.exp) || !Number.isFinite(claims.iat) ||
+        claims.exp <= nowSeconds - 30 || claims.iat > nowSeconds + 60) {
+      throw new Error("ID token is expired or not yet valid.");
+    }
+    if (claims.nbf !== undefined && (!Number.isFinite(claims.nbf) || claims.nbf > nowSeconds + 30)) {
+      throw new Error("ID token is not yet valid.");
+    }
+    if (!jwksDocument || !Array.isArray(jwksDocument.keys)) {
+      throw new Error("The identity provider's public signing keys are unavailable.");
+    }
+    const matches = jwksDocument.keys.filter((key) =>
+      key && key.kid === header.kid && key.kty === "RSA" &&
+      (key.use === undefined || key.use === "sig") &&
+      (key.alg === undefined || key.alg === "RS256") &&
+      !("d" in key) && !("p" in key) && !("q" in key)
+    );
+    if (matches.length !== 1) throw new Error("The ID-token signing key could not be uniquely identified.");
+    if (!cryptoApi || !cryptoApi.subtle) throw new Error("Browser cryptographic verification is unavailable.");
+
+    let publicKey;
+    try {
+      publicKey = await cryptoApi.subtle.importKey(
+        "jwk",
+        matches[0],
+        { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+        false,
+        ["verify"]
+      );
+    } catch (_error) {
+      throw new Error("The ID-token signing key is invalid.");
+    }
+
+    let signature;
+    try {
+      const normalized = parts[2].replace(/-/g, "+").replace(/_/g, "/");
+      const padded = normalized + "=".repeat((4 - normalized.length % 4) % 4);
+      const binary = typeof atob === "function"
+        ? atob(padded)
+        : Buffer.from(padded, "base64").toString("binary");
+      signature = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    } catch (_error) {
+      throw new Error("The ID-token signature is malformed.");
+    }
+    const signedBytes = new TextEncoder().encode(parts[0] + "." + parts[1]);
+    let verified = false;
+    try {
+      verified = await cryptoApi.subtle.verify(
+        { name: "RSASSA-PKCS1-v1_5" },
+        publicKey,
+        signature,
+        signedBytes
+      );
+    } catch (_error) {
+      verified = false;
+    }
+    if (!verified) throw new Error("The ID-token signature could not be verified.");
     return claims;
   }
 
@@ -249,9 +337,31 @@
         throw new Error("The provider did not return a Bearer access token.");
       }
       if (typeof tokenData.id_token !== "string") throw new Error("The OIDC response did not include an ID token for nonce binding.");
-      const idToken = parseJwt(tokenData.id_token);
-      if (idToken.claims.nonce !== tx.nonce) throw new Error("ID-token nonce did not match the sign-in request.");
-      const claims = validateAccessToken(tokenData.access_token, config, Math.floor(Date.now() / 1000));
+      let jwksResponse;
+      try {
+        jwksResponse = await browser.fetch(document.jwks_uri, {
+          method: "GET",
+          credentials: "omit",
+          cache: "no-store",
+          redirect: "error",
+          referrerPolicy: "no-referrer",
+          headers: { Accept: "application/json" }
+        });
+      } catch (_error) {
+        throw new Error("Could not load the identity provider's public signing keys.");
+      }
+      if (!jwksResponse.ok) throw new Error("The identity provider's public signing-key endpoint failed.");
+      const jwksDocument = await jwksResponse.json().catch(() => null);
+      const nowSeconds = Math.floor(Date.now() / 1000);
+      await validateIdToken(
+        tokenData.id_token,
+        config,
+        tx.nonce,
+        jwksDocument,
+        browser.crypto,
+        nowSeconds
+      );
+      const claims = validateAccessToken(tokenData.access_token, config, nowSeconds);
       const lifetime = Number(tokenData.expires_in);
       if (!Number.isFinite(lifetime) || lifetime < 60 || lifetime > 86400) {
         throw new Error("The access-token lifetime is missing or outside the accepted range.");
@@ -368,6 +478,7 @@
     validateConfig,
     parseJwt,
     validateAccessToken,
+    validateIdToken,
     createClient
   };
 });
