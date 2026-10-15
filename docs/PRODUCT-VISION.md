@@ -127,3 +127,8 @@ A commercially useful release should let:
 - a verifier see evidence and scope rather than an unexplained badge;
 - a later revocation or superseding event change the current result without deleting history;
 - external standards be integrated without making unsupported conformance claims.
+
+
+## Industry benchmark and integration guardrails
+
+The implementation strategy for interoperability, evidence provenance, privacy, external data providers, trust-center workflows and transparency logging is maintained in [`INDUSTRY-BENCHMARK-AND-ROADMAP.md`](./INDUSTRY-BENCHMARK-AND-ROADMAP.md). The benchmark distinguishes features already present in repository code from integrations that require deployment, credentials, legal approval or independent testing. Provider integrations must remain modular, and cryptographic validity must never be presented as proof that every underlying claim is true.
