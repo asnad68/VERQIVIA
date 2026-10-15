@@ -96,7 +96,7 @@ This is a target design checklist, not a declaration that each field is already 
 
 ### P1 — First measurable product advantage
 1. Build a **domain-control proof adapter** (DNS TXT and/or an HTTP well-known challenge) that issues a short-lived, single-use challenge and records the evidence, time and exact domain scope. A challenge proves control at that time; it does not prove trademark ownership or the truth of all company claims.
-2. Add a **GLEIF LEI lookup adapter** first where an entity has an LEI, since GLEIF publishes a dedicated API. Normalize source results into VERQIVIA evidence without making external calls part of every verification request.
+2. **Implemented in repository code:** a read-only GLEIF LEI name-search adapter and public `GET /v1/sources/gleif/search?name=...` API. It uses a fixed HTTPS upstream host, a short network timeout, a bounded response size, short-lived bounded caching, per-client rate limiting, normalized source fields and an explicit warning that a name match is not verification. Still required: CI confirmation and a live smoke test against the official upstream API before declaring it production-validated.
 3. Add source freshness and renewal states, user-visible reason codes, and a dispute/correction process.
 4. Run independent interoperability tests for the portable profile, API and cryptographic proof.
 
@@ -111,7 +111,7 @@ This is a target design checklist, not a declaration that each field is already 
 - Repository includes a server-capable pilot intake flow, OIDC/PKCE browser client, API contract, actor-scoped draft reads, idempotency handling and automated tests.
 - `site/portal-config.js` intentionally has blank API/OIDC settings.
 - The deployment runbook reports that no live API service or PostgreSQL instance was present when checked on 2026-10-15. Therefore the browser-to-server flow is **implemented in code but not yet usable against a live production server**.
-- No third-party registry/KYB provider is integrated by this review. Integrations remain explicit backlog items rather than implied capabilities.
+- The GLEIF reference lookup is now integrated in repository code and documented in OpenAPI; this is a read-only lookup, not a claim verification procedure. No KYB provider or country-specific company registry is integrated by this review.
 - Public identity issuance and payments remain disabled.
 
 Do not mark a gate complete until its evidence exists in CI or the actual deployment environment. A green repository CI run is necessary but does not prove the live service is deployed, configured, secure or commercially ready.
