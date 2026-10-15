@@ -21,7 +21,7 @@ Before the browser can connect, the operator must provision:
 - an OIDC provider configured for Authorization Code + PKCE/S256, the exact Portal callback URI below, and the expected signed JWT access-token contract;
 - the public, non-secret Portal settings in `site/portal-config.js`.
 
-The OIDC access token must be accepted by both sides: RS256, `typ=at+jwt` or `application/at+jwt`, the configured issuer and API audience, required time/token claims, and `nothing:pilot:write`. Do not assume a provider's default token format meets this contract; test a real token before relying on the provider.
+The OIDC access token must be accepted by both sides: RS256, `typ=at+jwt` or `application/at+jwt`, the configured issuer and API audience, required time/token claims, the configured `client_id`, and `nothing:pilot:write`. The browser also verifies the ID-token signature against the issuer's JWKS and checks issuer, audience, expiry, nonce and authorized-party binding. Do not assume a provider's default token format meets this contract; test a real token before relying on the provider.
 
 Exact Portal redirect URI:
 
@@ -64,6 +64,8 @@ Verify all of these before inviting an external pilot:
 
 - Submission without a bearer token returns HTTP 401.
 - A valid token missing `nothing:pilot:write` returns HTTP 403.
+- A token issued to a different `client_id` is rejected by the Portal's compatibility check and must not be treated as a successful login.
+- The Portal rejects ID tokens with an invalid signature, wrong issuer/audience, expired time claims, mismatched nonce or invalid `azp`.
 - A browser origin outside the configured allowlist is denied (HTTP 403).
 - The submitting actor can read their own draft.
 - A second test actor cannot read the first actor's draft (HTTP 404).
