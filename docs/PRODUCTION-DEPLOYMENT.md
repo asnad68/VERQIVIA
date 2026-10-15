@@ -66,7 +66,7 @@ Do not use the reference static-bearer mode for public production.
 
 The private pilot intake has a separate scope: `NOTHING_PORTAL_REQUIRED_SCOPE=nothing:pilot:write`. Configure the OIDC public client for Authorization Code + PKCE (S256), the exact callback URI `https://asnad68.github.io/VERQIVIA/portal.html`, and token-endpoint CORS for `https://asnad68.github.io`. The browser configuration file `site/portal-config.js` contains public values only; it must never contain a client secret or bearer token.
 
-The access token must be a signed RS256 JWT with `typ=at+jwt` (or `application/at+jwt`) and the exact configured API audience. The claims must include issuer, subject, `exp`, `iat`, `jti`, `client_id` and the dedicated pilot scope. The API validates the signature and scope independently; a client-side token check is only a compatibility check.
+The access token must be a signed RS256 JWT with `typ=at+jwt` (or `application/at+jwt`) and the exact configured API audience. The claims must include issuer, subject, `exp`, `iat`, `jti`, `client_id` and the dedicated pilot scope. The Portal verifies the ID-token RS256 signature against the configured issuer's HTTPS JWKS and checks issuer, audience, expiry, issue time, nonce and authorized-party binding. It also requires the access-token `client_id` to match the configured public client. The API independently verifies the access-token signature, issuer, audience and scope; browser checks never replace server-side authorization.
 
 The Portal can only be connected after the API and IdP are deployed. A successful pilot-draft response records an intake request; it does not register an official identity or verify a company.
 
