@@ -2,7 +2,7 @@
 
 ## Current status
 
-The repository contains the authenticated Portal/API flow and automated local HTTP tests. The Render workspace checked on 2026-10-09 had **no API service and no PostgreSQL instance**, so this guide is a runbook for the first deployment; it is not evidence that a live server currently exists.
+The repository contains the authenticated Portal/API flow and automated local HTTP tests. The Render workspace checked on 2026-10-15 had **no API service and no PostgreSQL instance**, so this guide is a runbook for the first deployment; it is not evidence that a live server currently exists.
 
 Do not enter real company data until the privacy, retention, access-control and legal review is complete. Use synthetic data during the first live smoke test. Payments, public identity issuance, wallet authorization and general enrollment must remain disabled.
 
