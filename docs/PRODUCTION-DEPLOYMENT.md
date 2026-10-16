@@ -23,6 +23,7 @@ Machine-readable discovery/profile
 ## Repository deployment assets
 
 - `docs/PILOT-SERVER-SMOKE-TEST.md` — exact live test sequence and security-negative checks after deployment.
+- `docs/DEPLOYMENT-RECOVERY-PATH.md` — current external provisioning blocker, safe fallback procedure, exact public configuration, and acceptance gates.
 - `render.yaml` — deployment blueprint for the API service and PostgreSQL target. It does **not** create the GitHub Pages static site.
 - `Dockerfile` — production API container.
 - `.env.example` — configuration contract.
