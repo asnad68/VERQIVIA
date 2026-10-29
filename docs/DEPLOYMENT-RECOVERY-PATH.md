@@ -1,12 +1,12 @@
 # VERQIVIA — Deployment Recovery Path
 
-**Status checked: 2026-10-16**
+**Status checked: 2026-10-30**
 
 ## Verified blocker
 
-The connected Render workspace `Mehdi's workspace` has no listed API service and no PostgreSQL database. An attempt to create a free PostgreSQL instance returned HTTP 402 with the message: `Payment information is required to complete this request`.
+The connected Render workspace `Mehdi's workspace` was rechecked on 2026-10-30: it still has no listed VERQIVIA API service and no PostgreSQL database. The last database-creation attempt, on 2026-10-16, returned HTTP 402 with the message: `Payment information is required to complete this request`.
 
-This is an account/provider provisioning barrier, not a code failure. Do not retry the same operation or try to evade a provider's payment/eligibility controls. No new Render resource was created by that failed request.
+This remains an account/provider provisioning barrier, not a code failure. The same failed operation has not been retried, and no new Render resource was created by that failed request. Do not bypass a provider's payment or eligibility controls.
 
 ## Keep the product safe while unblocking infrastructure
 
